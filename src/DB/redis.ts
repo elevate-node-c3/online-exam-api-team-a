@@ -1,5 +1,5 @@
 import { RedisClientType, createClient } from 'redis';
-import { REDIS_URL } from '../configs/env.config.js';
+import { REDIS_URL } from '../common/configs/env.config.js';
 import { Types } from 'mongoose';
 import { serverLogger } from '../common/utils/pino.util.js';
 export class RedisService {
