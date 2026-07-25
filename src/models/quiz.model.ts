@@ -1,5 +1,5 @@
-import { Schema, model, Document, Types } from "mongoose";
-import { QuestionType } from "../enums/quiz.enum.js";
+import { Schema, model, Document, Types } from 'mongoose';
+import { QuestionType } from '../common/enums/quiz.enum.js';
 
 export interface IQuizOption {
   text?: string;
@@ -42,7 +42,7 @@ const quizSchema = new Schema<IQuiz>(
     passingThreshold: { type: Number },
     diplomaId: {
       type: Schema.Types.ObjectId,
-      ref: "Diploma",
+      ref: 'Diploma',
       required: true,
       index: true,
     },
@@ -58,6 +58,6 @@ const quizSchema = new Schema<IQuiz>(
   },
 );
 
-quizSchema.index({ quizName: "text", description: "text" });
+quizSchema.index({ quizName: 'text', description: 'text' });
 
-export const Quiz = model<IQuiz>("Quiz", quizSchema);
+export const Quiz = model<IQuiz>('Quiz', quizSchema);

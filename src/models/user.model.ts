@@ -1,5 +1,5 @@
-import { Schema, model, Document } from "mongoose";
-import { UserRole } from "../enums/user.enum.js";
+import { Schema, model, Document } from 'mongoose';
+import { UserRole } from '../common/enums/user.enum.js';
 
 export interface IUser extends Document {
   firstName?: string;
@@ -41,4 +41,4 @@ const userSchema = new Schema<IUser>(
   },
 );
 
-export const User = model<IUser>("User", userSchema);
+export const User = model<IUser>('User', userSchema);

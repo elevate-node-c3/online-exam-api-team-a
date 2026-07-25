@@ -1,7 +1,7 @@
-import { RedisClientType, createClient } from "redis";
-import { REDIS_URL } from "../configs/env.config.js";
-import { Types } from "mongoose";
-import { serverLogger } from "../utils/pino.util.js";
+import { RedisClientType, createClient } from 'redis';
+import { REDIS_URL } from '../configs/env.config.js';
+import { Types } from 'mongoose';
+import { serverLogger } from '../common/utils/pino.util.js';
 export class RedisService {
   private readonly client: RedisClientType;
   constructor() {
@@ -11,17 +11,17 @@ export class RedisService {
     this.handleEvents();
   }
   private handleEvents() {
-    this.client.on("error", (err) =>
-      serverLogger.error({ err }, "Redis Error"),
+    this.client.on('error', (err) =>
+      serverLogger.error({ err }, 'Redis Error'),
     );
-    this.client.on("ready", () => serverLogger.info("Redis Is Connected"));
+    this.client.on('ready', () => serverLogger.info('Redis Is Connected'));
   }
   public async connect() {
     try {
       await this.client.connect();
-      serverLogger.info("Redis Service is ready");
+      serverLogger.info('Redis Service is ready');
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
     }
   }
   public revokedTokenPrefix(userId: string | Types.ObjectId) {
@@ -78,11 +78,11 @@ export class RedisService {
     ttl?: number | null;
   }): Promise<string | null> {
     try {
-      const data = typeof value == "object" ? JSON.stringify(value) : value;
+      const data = typeof value == 'object' ? JSON.stringify(value) : value;
       const options = ttl ? { EX: ttl } : {};
       return await this.client.set(key, data, options);
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return null;
     }
   }
@@ -90,7 +90,7 @@ export class RedisService {
     try {
       return await this.client.get(key);
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return null;
     }
   }
@@ -100,7 +100,7 @@ export class RedisService {
       if (!key.length) return 0;
       return this.client.del(key);
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return 0;
     }
   }
@@ -109,7 +109,7 @@ export class RedisService {
     try {
       return (await this.client.exists(key)) === 1;
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return false;
     }
   }
@@ -118,7 +118,7 @@ export class RedisService {
     try {
       return await this.client.ttl(key);
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return -2;
     }
   }
@@ -127,7 +127,7 @@ export class RedisService {
     try {
       return await this.client.incr(key);
     } catch (err) {
-      serverLogger.error({ err }, "Redis Error");
+      serverLogger.error({ err }, 'Redis Error');
       return null;
     }
   }

@@ -5,9 +5,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import { resolve } from 'node:path';
-import { NotFoundException } from './utils/exception.utils.js';
-import { serverLogger } from './utils/pino.util.js';
-import { globalErrorHandler } from './middlewares/middleware.js';
+import { NotFoundException } from './common/utils/exception.utils.js';
+import { serverLogger } from './common/utils/pino.util.js';
+import { globalErrorHandler } from './common/middlewares/middleware.js';
 import { PORT } from './configs/env.config.js';
 import { DBService } from './DB/db.js';
 import { redisService } from './DB/redis.js';
@@ -32,7 +32,7 @@ export const app = async () => {
     serverLogger.error({ err: error }, 'Startup failed');
     process.exit(1);
   }
-console.log("done")
+  console.log('done');
 
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());
@@ -43,7 +43,6 @@ console.log("done")
   const server = APP.listen(process.env.PORT, () => {
     serverLogger.info(`Server is running on port ${PORT}`);
   });
-
 
   server.on('error', (err) => {
     serverLogger.error({ err }, 'Failed to start HTTP server');
