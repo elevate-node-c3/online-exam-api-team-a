@@ -1,11 +1,11 @@
-import { validate } from '../../common/middlewares/validation.middleware.js';
+import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
-} from '../../common/schemas/auth.schema.js';
-import { ROUTES } from '../../routes.js';
-import { authController } from './auth.controller.js';
+} from '../../common/schemas/auth.schema';
+import { ROUTES } from '../../routes';
+import { authController } from './auth.controller';
 import { Router } from 'express';
 
 const authRouter = Router();

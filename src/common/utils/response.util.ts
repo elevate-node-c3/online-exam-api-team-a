@@ -1,4 +1,4 @@
-import { errorResponseDTO, successResponseDTO } from '../types/global.types.js';
+import { errorResponseDTO, successResponseDTO } from '../types/global.types';
 
 export const successRes = <T>({
   res,

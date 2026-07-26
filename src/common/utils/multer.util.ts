@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { randomUUID } from 'node:crypto';
-import { uploadOpts } from '../types/global.types.js';
-import { BadRequestException } from './exception.util.js';
-import { multerStorageType } from '../enums/multer.enum.js';
+import { uploadOpts } from '../types/global.types';
+import { BadRequestException } from './exception.util';
+import { multerStorageType } from '../enums/multer.enum';
 import { resolve } from 'path';
 import { existsSync, mkdirSync } from 'node:fs';
 
@@ -27,10 +27,11 @@ export const cloudUpload = (
             const uploadsPath = resolve(
               import.meta.dirname,
               '..',
+              '..',
               '/uploads',
               subfolder,
             );
-            if (existsSync(uploadsPath))
+            if (!existsSync(uploadsPath))
               mkdirSync(uploadsPath, { recursive: true });
             callback(null, uploadsPath);
           },
@@ -39,7 +40,7 @@ export const cloudUpload = (
             file: Express.Multer.File,
             callback: (error: Error | null, destination: string) => void,
           ) {
-            callback(null, `${buildFileName(req, file)}`);
+            callback(null, `${file.filename}/${buildFileName(req, file)}`);
           },
         });
 

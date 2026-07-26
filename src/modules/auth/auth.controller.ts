@@ -1,11 +1,11 @@
-import { AuthService, authService } from './auth.service.js';
+import { AuthService, authService } from './auth.service';
 import { Request, Response, NextFunction } from 'express';
 import {
   forgetPassowrdOTPDTO,
   resetPasswordDTO,
   verifyForgetPasswordOTPDTO,
-} from '../../common/schemas/auth.schema.js';
-import { successRes } from '../../common/utils/response.util.js';
+} from '../../common/schemas/auth.schema';
+import { successRes } from '../../common/utils/response.util';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

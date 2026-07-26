@@ -1,5 +1,7 @@
 import { Response, Request } from 'express';
-import { IUser } from './user.types.js';
+import { IUser } from './user.types';
+import { UserRole } from '../enums/user.enum';
+import { SignOptions } from 'jsonwebtoken';
 
 export interface successResponseDTO<T> {
   res: Response;
@@ -30,4 +32,22 @@ declare global {
       };
     }
   }
+}
+
+export interface generateTokenParams {
+  payload: {
+    _id: string;
+    email: string;
+    role: UserRole;
+  };
+  options?: SignOptions | undefined;
+}
+
+export interface verifyTokenParams {
+  role: UserRole;
+  token: string;
+}
+
+export interface decodeTokenParams {
+  token: string;
 }

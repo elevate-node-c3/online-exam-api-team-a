@@ -1,14 +1,14 @@
 import { Types } from 'mongoose';
-import { RedisService, redisService } from '../../DB/redis.js';
-import { SecurityService, securityService } from './securtiy.service.js';
+import { RedisService, redisService } from '../../DB/redis';
+import { SecurityService, securityService } from './securtiy.service';
 import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
   TooManyRequestsException,
   UnauthorizedException,
-} from '../utils/exception.util.js';
-import { generateOTP } from '../utils/otp.util.js';
+} from '../utils/exception.util';
+import { generateOTP } from '../utils/otp.util';
 
 export class OtpService {
   constructor(

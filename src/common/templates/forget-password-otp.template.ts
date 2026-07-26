@@ -1,4 +1,4 @@
-import { APPLICATION_NAME } from '../configs/env.config.js';
+import { APPLICATION_NAME } from '../configs/env.config';
 
 export const forgetPasswordOTPTemplate = ({
   otp,

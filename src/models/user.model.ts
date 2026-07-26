@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
-import { UserRole } from '../common/enums/user.enum.js';
-import { IUser } from '../common/types/user.types.js';
+import { UserRole } from '../common/enums/user.enum';
+import { IUser } from '../common/types/user.types';
 
 const userSchema = new Schema<IUser>(
   {
@@ -12,7 +12,7 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: Object.values(UserRole),
-      default: UserRole.STUDENT,
+      default: UserRole.USER,
     },
     fastestTime: { type: Number },
     correctAnswers: { type: Number },

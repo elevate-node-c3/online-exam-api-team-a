@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import { NextFunction, Request, Response } from 'express';
-import { errorRes } from '../utils/response.util.js';
+import { errorRes } from '../utils/response.util';
 
 type schemaKeys = Partial<Record<keyof Request, z.ZodType>>;
 

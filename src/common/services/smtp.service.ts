@@ -4,8 +4,8 @@ import {
   SMTP_PORT,
   SMTP_SERVICE,
   SMTP_USER,
-} from '../configs/env.config.js';
-import { serverLogger } from '../utils/pino.util.js';
+} from '../configs/env.config';
+import { serverLogger } from '../utils/pino.util';
 
 export class SmtpService {
   private readonly transporter: Transporter;

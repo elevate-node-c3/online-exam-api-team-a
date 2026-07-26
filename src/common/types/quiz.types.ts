@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { QuestionType } from '../enums/quiz.enum.js';
+import { QuestionType } from '../enums/quiz.enum';
 
 export interface IQuizOption {
   text?: string;
@@ -14,6 +14,7 @@ export interface IQuizQuestion {
 
 export interface IQuiz extends Document {
   quizName?: string;
+  instrcutions?: string[];
   description?: string;
   photo?: string;
   time?: number;
