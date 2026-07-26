@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { InternalServerErrorException } from '../common/utils/exception.util.js';
-import { serverLogger } from '../common/utils/pino.util.js';
-import { MONGO_URI } from '../common/configs/env.config.js';
+import { InternalServerErrorException } from '../common/utils/exception.util';
+import { serverLogger } from '../common/utils/pino.util';
+import { MONGO_URI } from '../common/configs/env.config';
 
 export class DatabaseService {
   private handleEvents(): void {

@@ -1,5 +1,5 @@
-import { app } from './app.js';
-import { serverLogger } from './common/utils/pino.util.js';
+import { app } from './app';
+import { serverLogger } from './common/utils/pino.util';
 
 try {
   await app();

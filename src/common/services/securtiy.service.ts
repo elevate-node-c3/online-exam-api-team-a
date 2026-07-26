@@ -1,7 +1,7 @@
 
 import argon2 from 'argon2';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-import { ENCRYPTION_ALGORITHM, ENCRYPTION_IV_LENGTH, ENCRYPTION_SECRET } from '../configs/env.config.js';
+import { ENCRYPTION_ALGORITHM, ENCRYPTION_IV_LENGTH, ENCRYPTION_SECRET } from '../configs/env.config';
 
 export class SecurityService {
   constructor() {}

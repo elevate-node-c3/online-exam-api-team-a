@@ -1,17 +1,17 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import './models/index.js';
+import './models/index';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { NotFoundException } from './common/utils/exception.util.js';
-import { serverLogger } from './common/utils/pino.util.js';
-import { globalErrorHandler } from './common/middlewares/globalError.middleware.js';
-import { PORT } from './common/configs/env.config.js';
-import { DBService } from './DB/db.js';
-import { redisService } from './DB/redis.js';
-import { smtpService } from './common/services/smtp.service.js';
-import { ROUTES } from './routes.js';
-import authRouter from './modules/auth/auth.router.js';
+import { NotFoundException } from './common/utils/exception.util';
+import { serverLogger } from './common/utils/pino.util';
+import { globalErrorHandler } from './common/middlewares/globalError.middleware';
+import { PORT } from './common/configs/env.config';
+import { DBService } from './DB/db';
+import { redisService } from './DB/redis';
+import { smtpService } from './common/services/smtp.service';
+import { ROUTES } from './routes';
+import authRouter from './modules/auth/auth.router';
 
 export const app = async () => {
   const APP: Express = express();

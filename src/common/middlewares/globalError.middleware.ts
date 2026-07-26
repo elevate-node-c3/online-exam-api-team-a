@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { IAppError } from '../types/error.types.js';
-import { serverLogger } from '../utils/pino.util.js';
+import { IAppError } from '../types/error.types';
+import { serverLogger } from '../utils/pino.util';
 
 export const globalErrorHandler = (
   err: IAppError,

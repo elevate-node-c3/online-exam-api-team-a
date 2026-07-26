@@ -1,10 +1,10 @@
 import { Schema, model } from 'mongoose';
-import { QuestionType } from '../common/enums/quiz.enum.js';
+import { QuestionType } from '../common/enums/quiz.enum';
 import {
   IQuiz,
   IQuizOption,
   IQuizQuestion,
-} from '../common/types/quiz.types.js';
+} from '../common/types/quiz.types';
 
 const quizOptionSchema = new Schema<IQuizOption>({
   text: { type: String },

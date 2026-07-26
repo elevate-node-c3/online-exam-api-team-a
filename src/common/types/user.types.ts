@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import { UserRole } from '../enums/user.enum.js';
+import { UserRole } from '../enums/user.enum';
 
 export interface IUser extends Document {
   firstName?: string;

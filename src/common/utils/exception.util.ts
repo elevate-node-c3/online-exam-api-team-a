@@ -1,4 +1,4 @@
-import { IAppError } from '../types/error.types.js';
+import { IAppError } from '../types/error.types';
 
 export type AppErrorOptions = ErrorOptions & {
   data?: Record<string, unknown> | undefined;

@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { IUser } from './user.types.js';
+import { IUser } from './user.types';
 import { UserRole } from '../enums/user.enum.js';
 import { SignOptions } from 'jsonwebtoken';
 

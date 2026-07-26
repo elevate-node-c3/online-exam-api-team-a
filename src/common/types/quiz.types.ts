@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { QuestionType } from '../enums/quiz.enum.js';
+import { QuestionType } from '../enums/quiz.enum';
 
 export interface IQuizOption {
   text?: string;
