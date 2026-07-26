@@ -40,7 +40,7 @@ export const cloudUpload = (
             file: Express.Multer.File,
             callback: (error: Error | null, destination: string) => void,
           ) {
-            callback(null, `${buildFileName(req, file)}`);
+            callback(null, `${file.filename}/${buildFileName(req, file)}`);
           },
         });
 
