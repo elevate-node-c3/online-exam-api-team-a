@@ -2,6 +2,15 @@
 
 A backend API for an online exam platform: students register, take timed multiple-choice quizzes tied to a diploma/track, and get scored automatically against a passing threshold. Admins create diplomas and quizzes.
 
+![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Runtime](https://img.shields.io/badge/Runtime-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Framework](https://img.shields.io/badge/Framework-Express%205-000000?style=for-the-badge&logo=express&logoColor=white)
+![Database](https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Cache](https://img.shields.io/badge/Cache-Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Validation](https://img.shields.io/badge/Validation-Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+
+![Status](https://img.shields.io/badge/Status-Active%20Development-22C55E?style=for-the-badge)
+
 ---
 
 ## Tech Stack
