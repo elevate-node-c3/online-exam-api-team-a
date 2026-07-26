@@ -1,6 +1,6 @@
-import { DatabaseRepo } from './db.repo.js';
-import { IDiploma } from '../types/diploma.types.js';
-import { Diploma } from '../../models/diploma.model.js';
+import { DatabaseRepo } from './db.repo';
+import { IDiploma } from '../types/diploma.types';
+import { Diploma } from '../../models/diploma.model';
 export class DiplomaRepo extends DatabaseRepo<IDiploma> {
   constructor() {
     super(Diploma);

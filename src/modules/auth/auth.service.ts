@@ -1,12 +1,12 @@
-import { UserRepo, userRepo } from '../../common/repositories/user.repo.js';
-import { OtpService, otpService } from '../../common/services/otp.service.js';
+import { UserRepo, userRepo } from '../../common/repositories/user.repo';
+import { OtpService, otpService } from '../../common/services/otp.service';
 import {
   SecurityService,
   securityService,
-} from '../../common/services/securtiy.service.js';
-import { NotFoundException } from '../../common/utils/exception.util.js';
-import { smtpService } from '../../common/services/smtp.service.js';
-import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template.js';
+} from '../../common/services/securtiy.service';
+import { NotFoundException } from '../../common/utils/exception.util';
+import { smtpService } from '../../common/services/smtp.service';
+import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
 
 export class AuthService {
   constructor(

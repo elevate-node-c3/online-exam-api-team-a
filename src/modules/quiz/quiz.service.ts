@@ -1,11 +1,11 @@
-import { quizRepo, QuizRepo } from '../../common/repositories/quiz.repo.js';
-import { createQuizDTO } from '../../common/schemas/quiz.schema.js';
+import { quizRepo, QuizRepo } from '../../common/repositories/quiz.repo';
+import { createQuizDTO } from '../../common/schemas/quiz.schema';
 import {
   DiplomaRepo,
   diplomaRepo,
-} from '../../common/repositories/diploma.repo.js';
-import { NotFoundException } from '../../common/utils/exception.util.js';
-import { QUIZ_PASSING_DEFAULT_THRESHOLD } from '../../common/constants/quiz.constant.js';
+} from '../../common/repositories/diploma.repo';
+import { NotFoundException } from '../../common/utils/exception.util';
+import { QUIZ_PASSING_DEFAULT_THRESHOLD } from '../../common/constants/quiz.constant';
 export class QuizService {
   constructor(
     private readonly quizRepo: QuizRepo,

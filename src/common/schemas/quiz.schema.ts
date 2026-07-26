@@ -1,6 +1,6 @@
 import * as z from 'zod';
-import { objectIdSchema } from './global.schema.js';
-import { QuestionType } from '../enums/quiz.enum.js';
+import { objectIdSchema } from './global.schema';
+import { QuestionType } from '../enums/quiz.enum';
 
 const quizOptionSchema = z.strictObject({
   text: z.string().min(3),

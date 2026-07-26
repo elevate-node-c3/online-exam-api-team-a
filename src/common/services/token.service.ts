@@ -2,21 +2,21 @@ import jwt from 'jsonwebtoken';
 import {
   ADMIN_ACCESS_SECRET,
   USER_ACCESS_SECRET,
-} from '../configs/env.config.js';
+} from '../configs/env.config';
 import {
   decodeTokenParams,
   generateTokenParams,
   verifyTokenParams,
-} from '../types/global.types.js';
+} from '../types/global.types';
 
-import { UserRepo, userRepo } from '../repositories/user.repo.js';
+import { UserRepo, userRepo } from '../repositories/user.repo';
 
 import { nanoid } from 'nanoid';
 import {
   InternalServerErrorException,
   UnauthorizedException,
-} from '../utils/exception.util.js';
-import { UserRole } from '../enums/user.enum.js';
+} from '../utils/exception.util';
+import { UserRole } from '../enums/user.enum';
 
 export const token_secrets = {
   user: USER_ACCESS_SECRET,
