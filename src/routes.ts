@@ -10,5 +10,8 @@ export const ROUTES = {
   QUIZ:{
     BASE:"/quizzes",
     BY_ID: '/:id',
-  }
+  },
+  DIPLOMA: {
+    BASE: '/diplomas',
+  },
 };
