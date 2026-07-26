@@ -27,10 +27,11 @@ export const cloudUpload = (
             const uploadsPath = resolve(
               import.meta.dirname,
               '..',
+              '..',
               '/uploads',
               subfolder,
             );
-            if (existsSync(uploadsPath))
+            if (!existsSync(uploadsPath))
               mkdirSync(uploadsPath, { recursive: true });
             callback(null, uploadsPath);
           },

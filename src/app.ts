@@ -20,6 +20,7 @@ export const app = async () => {
   APP.use(cors({ origin: '*', credentials: true }));
   APP.use(express.json());
   APP.use(cookieParser());
+  APP.use('/uploads', express.static(resolve(import.meta.dirname, 'uploads')));
 
   try {
     await DBService.connectDB();
@@ -47,3 +48,6 @@ export const app = async () => {
     process.exit(1);
   });
 };
+function resolve(dirname: string, arg1: string): string {
+  throw new Error('Function not implemented.');
+}
