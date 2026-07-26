@@ -1,41 +1,49 @@
-# Online Exam API
+# 🎓 Online Exam API
 
 A backend API for an online exam platform: students register, take timed multiple-choice quizzes tied to a diploma/track, and get scored automatically against a passing threshold. Admins create diplomas and quizzes.
 
-![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Runtime](https://img.shields.io/badge/Runtime-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![Framework](https://img.shields.io/badge/Framework-Express%205-000000?style=for-the-badge&logo=express&logoColor=white)
-![Database](https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![Cache](https://img.shields.io/badge/Cache-Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+<!-- markdownlint-disable MD033 -->
+<div align="center">
+
+![Language](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)&nbsp;&nbsp;
+![Runtime](https://img.shields.io/badge/Runtime-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)&nbsp;&nbsp;
+![Framework](https://img.shields.io/badge/Framework-Express%205-000000?style=for-the-badge&logo=express&logoColor=white)&nbsp;&nbsp;
+![Database](https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)&nbsp;&nbsp;
+![Cache](https://img.shields.io/badge/Cache-Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)&nbsp;&nbsp;
 ![Validation](https://img.shields.io/badge/Validation-Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
 
-![Status](https://img.shields.io/badge/Status-Active%20Development-22C55E?style=for-the-badge)
+&nbsp;
+
+![Status](https://img.shields.io/badge/Status-Active%20Development-22C55E?style=for-the-badge&logo=rocket&logoColor=white)
+
+</div>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
-## Tech Stack
+## 🧰 Tech Stack
 
-- **Runtime**: Node.js (ESM) + TypeScript
-- **Framework**: Express 5
-- **Database**: MongoDB via Mongoose
-- **Cache / OTP store**: Redis
-- **Validation**: Zod
-- **Auth**: JSON Web Tokens (`jsonwebtoken`) + Argon2 password hashing
-- **Email**: Nodemailer (SMTP)
-- **File uploads**: Multer
-- **Logging**: Pino
-- **Security middleware**: Helmet, CORS, express-rate-limit, cookie-parser
+- 🟦 **Runtime**: Node.js (ESM) + TypeScript
+- 🚂 **Framework**: Express 5
+- 🍃 **Database**: MongoDB via Mongoose
+- 🟥 **Cache / OTP store**: Redis
+- ✅ **Validation**: Zod
+- 🔐 **Auth**: JSON Web Tokens (`jsonwebtoken`) + Argon2 password hashing
+- 📧 **Email**: Nodemailer (SMTP)
+- 📁 **File uploads**: Multer
+- 📝 **Logging**: Pino
+- 🛡️ **Security middleware**: Helmet, CORS, express-rate-limit, cookie-parser
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 - [docs/database-schema.md](docs/database-schema.md) — collections, fields, and index rationale
 - [docs/api-endpoints.md](docs/api-endpoints.md) — the designed API contract (request/response shapes)
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -82,7 +90,7 @@ Runs the server with `tsx --watch` in development mode (`NODE_ENV=development`),
 
 ---
 
-## Available Scripts
+## 📜 Available Scripts
 
 | Script | Description |
 | --- | --- |
@@ -92,7 +100,7 @@ Runs the server with `tsx --watch` in development mode (`NODE_ENV=development`),
 
 ---
 
-## Folder Structure
+## 🗂️ Folder Structure
 
 ```text
 src/
@@ -124,7 +132,7 @@ src/
 
 ---
 
-## Architecture Notes
+## 🏗️ Architecture Notes
 
 - Business logic is organized by **feature module** (`modules/auth`, `modules/quiz`, ...). Each module composes its own service from repositories and other services, then exports a ready-to-use singleton (e.g. `authService`, `authController`) — manual composition at the bottom of each file, no DI container.
 - Cross-cutting infrastructure (DB/Redis connections, error handling, logging, validation, shared repositories/types/schemas) lives under `common/`.
@@ -132,11 +140,11 @@ src/
 
 ---
 
-## Implementation Status
+## ✅ Implementation Status
 
 This is under active development. Currently wired up end-to-end:
 
-- **Auth**: forgot-password flow (send OTP by email, verify OTP, reset password)
-- **Quiz**: quiz creation (with diploma validation, duplicate-name check, and photo upload)
+- ✔️ **Auth**: forgot-password flow (send OTP by email, verify OTP, reset password)
+- ✔️ **Quiz**: quiz creation (with diploma validation, duplicate-name check, and photo upload)
 
 The rest of [docs/api-endpoints.md](docs/api-endpoints.md) (registration/login, profile, quiz catalog, attempts, diplomas CRUD) describes the intended API contract and is not yet implemented.
