@@ -4,9 +4,12 @@ import {
   SecurityService,
   securityService,
 } from '../../common/services/securtiy.service';
-import { NotFoundException } from '../../common/utils/exception.util';
+import { NotFoundException, UnauthorizedException } from '../../common/utils/exception.util';
 import { smtpService } from '../../common/services/smtp.service';
 import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
+import { LoginDto } from './dto/login.dto';
+import { IUser } from '../../common/types/user.types';
+import * as jwt from "jsonwebtoken";
 
 export class AuthService {
   constructor(
@@ -29,6 +32,28 @@ export class AuthService {
     });
     return user;
   }
+
+  private async createToken(user: IUser) {
+    const payload = { id: user._id, email: user.email, name: `${user.firstName} ${user.lastName}` };
+    // TODO: Use the expiration from the environment variable, but ensure it's a valid string or number
+    return jwt.sign(payload, process.env.USER_ACCESS_SECRET!, { expiresIn: Number(process.env.USER_ACCESS_SECRET_EXPIRATION)  ?? '1h' });
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.findUser(loginDto.email);
+    // Handle the case where the user is not found
+    if (!user) throw new NotFoundException('User not found');
+
+    const isPasswordValid = await this.securityService.verify(
+      loginDto.password,
+      user.password,
+    );
+    if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
+
+    return { success: true, message: 'Logged in successfully', token: await this.createToken(user) };
+  }
+
+  async register() {}
 
   async sendForgetPasswordOTP({ email }: { email: string }) {
     const user = await this.findUser(email);
