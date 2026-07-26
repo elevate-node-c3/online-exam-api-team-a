@@ -1,10 +1,5 @@
-import { Schema, model, Document } from "mongoose";
-
-export interface IDiploma extends Document {
-  diplomaName?: string;
-  diplomaDescription?: string;
-  photo?: string;
-}
+import { Schema, model } from "mongoose";
+import { IDiploma } from "../common/types/diploma.types.js";
 
 const diplomaSchema = new Schema<IDiploma>(
   {

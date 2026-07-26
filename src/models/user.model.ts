@@ -1,18 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { UserRole } from '../common/enums/user.enum.js';
-
-export interface IUser extends Document {
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  password: string;
-  photo?: string;
-  role: UserRole;
-  fastestTime?: number;
-  correctAnswers?: number;
-  quizzesPassed?: number;
-  credentialsChangedAt?: Date;
-}
+import { IUser } from '../common/types/user.types.js';
 
 const userSchema = new Schema<IUser>(
   {

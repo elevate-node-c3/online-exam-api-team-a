@@ -3,19 +3,15 @@ import helmet from 'helmet';
 import './models/index.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { config } from 'dotenv';
-import { resolve } from 'node:path';
 import { NotFoundException } from './common/utils/exception.utils.js';
 import { serverLogger } from './common/utils/pino.util.js';
-import { globalErrorHandler } from './common/middlewares/middleware.js';
+import { globalErrorHandler } from './common/middlewares/globalError.middleware.js';
 import { PORT } from './common/configs/env.config.js';
 import { DBService } from './DB/db.js';
 import { redisService } from './DB/redis.js';
 import { smtpService } from './common/services/smtp.service.js';
 
-config({
-  path: resolve(`./.env.${process.env.NODE_ENV && 'development'}`),
-});
+
 export const app = async () => {
   const APP: Express = express();
 

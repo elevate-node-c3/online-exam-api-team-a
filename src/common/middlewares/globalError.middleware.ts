@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { IAppError } from '../types/error.types.js';
+import { serverLogger } from '../utils/pino.util.js';
 
 export const globalErrorHandler = (
   err: IAppError,
@@ -29,7 +30,7 @@ export const globalErrorHandler = (
   status = status || 502;
 
   if (status >= 500) {
-    // serverLogger.error({ err }, err.message);
+    serverLogger.error({ err }, err.message);
   }
 
   res.status(status).json({

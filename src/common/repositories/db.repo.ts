@@ -11,7 +11,7 @@ import {
   UpdateWriteOpResult,
   MongooseUpdateQueryOptions,
   mongo,
-} from "mongoose";
+} from 'mongoose';
 
 export abstract class DatabaseRepo<RawDoc> {
   constructor(protected readonly model: Model<RawDoc>) {
@@ -20,24 +20,26 @@ export abstract class DatabaseRepo<RawDoc> {
 
   async create({
     data,
+    options,
   }: {
     data: AnyKeys<RawDoc>;
+    options?: CreateOptions;
   }): Promise<HydratedDocument<RawDoc>>;
 
   async create({
     data,
     options,
   }: {
-    data: AnyKeys<RawDoc>;
-    options: CreateOptions;
+    data: AnyKeys<RawDoc>[];
+    options?: CreateOptions;
   }): Promise<HydratedDocument<RawDoc>[]>;
 
   public async create({
     data,
     options,
   }: {
-    data: AnyKeys<RawDoc>;
-    options: CreateOptions | undefined;
+    data: AnyKeys<RawDoc> | AnyKeys<RawDoc>[];
+    options?: CreateOptions;
   }): Promise<HydratedDocument<RawDoc>[] | HydratedDocument<RawDoc>> {
     const payload = await this.model.create(
       Array.isArray(data) ? data : [data],
@@ -130,7 +132,7 @@ export abstract class DatabaseRepo<RawDoc> {
       const parsedSize = Number(size as string);
       options.skip = (pageNumber - 1) * parsedSize;
       options.limit = parsedSize;
-       count = await this.model.countDocuments();
+      count = await this.model.countDocuments(filter);
     }
 
     const docs = await this.find({

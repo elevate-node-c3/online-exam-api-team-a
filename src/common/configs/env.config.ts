@@ -1,5 +1,5 @@
-import { config } from "dotenv";
-import { resolve } from "node:path";
+import { config } from 'dotenv';
+import { resolve } from 'node:path';
 
 config({
   path: resolve(`./.env`),
@@ -12,7 +12,7 @@ export const MONGO_URI = process.env.MONGO_URI as string;
 
 export const SMTP_USER = process.env.SMTP_USER as string;
 export const SMTP_PASS = process.env.SMTP_PASS as string;
-export const SMTP_PORT = process.env.SMTP_PORT as unknown as number;
+export const SMTP_PORT = Number(process.env.SMTP_PORT);
 export const SMTP_SERVICE = process.env.SMTP_SERVICE as string;
 
 export const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET as string;
@@ -27,5 +27,3 @@ export const ADMIN_ACCESS_SECRET = process.env.ADMIN_ACCESS_SECRET as string;
 export const ADMIN_REFRESH_SECRET = process.env.ADMIN_REFRESH_SECRET as string;
 
 export const CLIENT_URL = process.env.CLIENT_URL as string;
-
-

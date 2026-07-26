@@ -1,26 +1,10 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { QuestionType } from '../common/enums/quiz.enum.js';
-
-export interface IQuizOption {
-  text?: string;
-}
-
-export interface IQuizQuestion {
-  text?: string;
-  type?: QuestionType;
-  options?: IQuizOption[];
-  correctOptionIndex?: number[];
-}
-
-export interface IQuiz extends Document {
-  quizName?: string;
-  description?: string;
-  photo?: string;
-  time?: number;
-  passingThreshold?: number;
-  diplomaId: Types.ObjectId;
-  questions?: IQuizQuestion[];
-}
+import {
+  IQuiz,
+  IQuizOption,
+  IQuizQuestion,
+} from '../common/types/quiz.types.js';
 
 const quizOptionSchema = new Schema<IQuizOption>({
   text: { type: String },
