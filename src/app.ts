@@ -22,6 +22,7 @@ export const app = async () => {
   APP.use(cookieParser());
 
   try {
+    // Can be done better if used Promise.all([]);
     await DBService.connectDB();
     await smtpService.checkSMTP();
     await redisService.connect();
