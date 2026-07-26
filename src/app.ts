@@ -3,14 +3,15 @@ import helmet from 'helmet';
 import './models/index.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { NotFoundException } from './common/utils/exception.utils.js';
+import { NotFoundException } from './common/utils/exception.util.js';
 import { serverLogger } from './common/utils/pino.util.js';
 import { globalErrorHandler } from './common/middlewares/globalError.middleware.js';
 import { PORT } from './common/configs/env.config.js';
 import { DBService } from './DB/db.js';
 import { redisService } from './DB/redis.js';
 import { smtpService } from './common/services/smtp.service.js';
-
+import { ROUTES } from './routes.js';
+import authRouter from './modules/auth/auth.router.js';
 
 export const app = async () => {
   const APP: Express = express();
@@ -28,7 +29,8 @@ export const app = async () => {
     serverLogger.error({ err: error }, 'Startup failed');
     process.exit(1);
   }
-  console.log('done');
+
+  APP.use(ROUTES.AUTH.BASE, authRouter);
 
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());

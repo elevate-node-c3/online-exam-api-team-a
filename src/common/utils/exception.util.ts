@@ -49,7 +49,7 @@ export class UnauthorizedException extends AppError {
   }
 }
 
-export class ForbiddenExceptions extends AppError {
+export class ForbiddenException extends AppError {
   constructor(message: string = 'Forbidden Action', options?: ErrorOptions) {
     super(message, 403, options);
   }
@@ -69,3 +69,4 @@ export class TooManyRequestsException extends AppError {
     super(message, 429, options);
   }
 }
+

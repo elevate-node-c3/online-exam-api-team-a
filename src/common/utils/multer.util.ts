@@ -2,7 +2,7 @@ import { Request } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { randomUUID } from 'node:crypto';
 import { uploadOpts } from '../types/global.types.js';
-import { BadRequestException } from '../utils/exception.utils.js';
+import { BadRequestException } from './exception.util.js';
 import { multerStorageType } from '../enums/multer.enum.js';
 import { resolve } from 'path';
 import { existsSync, mkdirSync } from 'node:fs';
