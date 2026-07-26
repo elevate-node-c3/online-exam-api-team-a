@@ -12,6 +12,7 @@ import { redisService } from './DB/redis';
 import { smtpService } from './common/services/smtp.service';
 import { ROUTES } from './routes';
 import authRouter from './modules/auth/auth.router';
+import { quizRouter } from './modules/quiz/quiz.router';
 
 export const app = async () => {
   const APP: Express = express();
@@ -32,6 +33,7 @@ export const app = async () => {
   }
 
   APP.use(ROUTES.AUTH.BASE, authRouter);
+  APP.use(ROUTES.QUIZ.BASE, quizRouter);
 
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());
