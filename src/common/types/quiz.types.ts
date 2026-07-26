@@ -14,6 +14,7 @@ export interface IQuizQuestion {
 
 export interface IQuiz extends Document {
   quizName?: string;
+  instrcutions?: string[];
   description?: string;
   photo?: string;
   time?: number;

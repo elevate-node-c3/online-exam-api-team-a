@@ -19,10 +19,10 @@ const quizQuestionSchema = new Schema<IQuizQuestion>({
 
 const quizSchema = new Schema<IQuiz>(
   {
-    quizName: { type: String },
-    description: { type: String },
-    photo: { type: String },
-    time: { type: Number },
+    quizName: { type: String, required: true },
+    description: { type: String, required: true },
+    photo: { type: String, required: true },
+    time: { type: Number, required: true },
     passingThreshold: { type: Number },
     diplomaId: {
       type: Schema.Types.ObjectId,
@@ -30,7 +30,8 @@ const quizSchema = new Schema<IQuiz>(
       required: true,
       index: true,
     },
-    questions: { type: [quizQuestionSchema] },
+    instrcutions: { type: [String] },
+    questions: { type: [quizQuestionSchema], required: true },
   },
   {
     toJSON: { virtuals: true, getters: true },
