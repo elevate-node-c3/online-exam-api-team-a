@@ -2,11 +2,10 @@ import { AuthService, authService } from './auth.service';
 import { Request, Response, NextFunction } from 'express';
 import {
   forgetPassowrdOTPDTO,
+  registerDTO,
   resetPasswordDTO,
   verifyForgetPasswordOTPDTO,
 } from '../../common/schemas/auth.schema';
-
-import { RegisterDto } from './dto/register.dto';
 
 import { successRes } from '../../common/utils/response.util';
 import { accessTokenCookieOptions } from '../../common/configs/cookie.config';
@@ -20,7 +19,7 @@ export class AuthController {
       next: NextFunction,
     ) {
       try {
-        const result = await this.authService.register(req.body as RegisterDto);
+        const result = await this.authService.register(req.body as registerDTO);
         res.cookie('accessToken', result.token, accessTokenCookieOptions);
         successRes({
           res,
@@ -45,7 +44,6 @@ export class AuthController {
           res,
           message: 'User logged in successfully',
           status: 200,
-          data: result,
         });
       } catch (error) {
         next(error);
@@ -97,6 +95,11 @@ export class AuthController {
   ) {
     try {
       await this.authService.resetPassword(req.body as resetPasswordDTO);
+      successRes({
+        res,
+        message: 'Password reset successfully',
+        status: 200,
+      });
     } catch (err) {
       next(err);
     }

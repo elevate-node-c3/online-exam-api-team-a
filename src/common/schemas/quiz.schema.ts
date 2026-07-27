@@ -13,14 +13,30 @@ const quizQuestionSchema = z.strictObject({
   correctOptionIndex: z.array(z.number()).min(1),
 });
 
+const unwrapMultipartField = (value: unknown) =>
+  Array.isArray(value) ? value[0] : value;
+
 const quizBaseSchema = z.strictObject({
   quizName: z.string().min(3),
   description: z.string(),
-  time: z.number().min(30).max(120),
+  time: z.coerce.number().min(30).max(120),
   instructions: z.array(z.string()).optional(),
-  passingThreshold: z.number().min(20).max(100).optional(),
+  passingThreshold: z.coerce.number().min(20).max(100).optional(),
   diplomaId: objectIdSchema,
-  questions: z.array(quizQuestionSchema).min(1).max(10),
+  questions: z
+    .preprocess(unwrapMultipartField, z.string())
+    .transform((value, ctx) => {
+      try {
+        return JSON.parse(value) as unknown;
+      } catch (err) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `questions must be valid JSON: ${(err as Error).message}`,
+        });
+        return z.NEVER;
+      }
+    })
+    .pipe(z.array(quizQuestionSchema).min(1).max(10)),
 });
 
 const validateQuestions = (
@@ -64,5 +80,12 @@ export const quizIdParamSchema = z.strictObject({
   id: objectIdSchema,
 });
 
+export const quizListQuerySchema = z.object({
+  query: z.string().optional(),
+  page: z.coerce.number().min(1).optional(),
+  size: z.coerce.number().min(1).max(100).optional(),
+});
+
 export type createQuizDTO = z.infer<typeof createQuizSchema>;
 export type updateQuizDTO = z.infer<typeof updateQuizSchema>;
+export type quizListQueryDTO = z.infer<typeof quizListQuerySchema>;

@@ -7,6 +7,7 @@ import './models/index';
 import { NotFoundException } from './common/utils/exception.util';
 import { serverLogger } from './common/utils/pino.util';
 import { globalErrorHandler } from './common/middlewares/globalError.middleware';
+import { initCredentials } from './common/middlewares/credentials.middleware';
 import { PORT } from './common/configs/env.config';
 import { DBService } from './DB/db';
 import { redisService } from './DB/redis';
@@ -23,6 +24,7 @@ export const app = async () => {
   APP.use(express.json());
   APP.use(cookieParser());
   APP.use('/uploads', express.static(path.resolve(import.meta.dirname, 'uploads')));
+  APP.use(initCredentials);
 
   try {
     // Can be done better if used Promise.all([]);

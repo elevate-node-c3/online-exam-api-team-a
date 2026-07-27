@@ -1,13 +1,14 @@
 import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
+  loginSchema,
+  registerSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
 } from '../../common/schemas/auth.schema';
 import { ROUTES } from '../../routes';
 import { authController } from './auth.controller';
 import { Router } from 'express';
-import { registerSchema } from './dto/register.dto';
 
 const authRouter = Router();
 
@@ -37,8 +38,8 @@ authRouter.post(
 
 authRouter.get(
   ROUTES.AUTH.LOGIN,
+  validate({ body: loginSchema }),
   authController.loginController.bind(authController),
-
-)
+);
 
 export default authRouter;

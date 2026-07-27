@@ -31,6 +31,7 @@ export const globalErrorHandler = (
 
   if (status >= 500) {
     serverLogger.error({ err }, err.message);
+    message = 'Something went wrong. Please try again later.';
   }
 
   res.status(status).json({

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b6a2f2b0-6e2a-4c9a-9c1a-online-exam-api",
     "name": "Online Exam API",
-    "description": "Collection covering the currently-implemented routes: auth (signup/login/forgot-password flow) and quiz (create/update). Base URL and a few IDs are collection variables so you can fill them in once and reuse them across requests.\n\nKnown limitation: POST /quizzes and PATCH /quizzes/:id require multipart/form-data (a photo file is part of the schema), but the `questions`/`instructions` fields are arrays/objects in the Zod schema. There is currently no server-side step that JSON-parses those multipart fields back into arrays before validation runs, so as-is those two requests will fail Zod validation on `questions` (received string, expected array) until that parsing middleware is added. The bodies below are shaped correctly per the schema for when that's in place.",
+    "description": "Collection covering the currently-implemented routes: auth (signup/login/forgot-password flow) and quiz (create/update/list/get). Base URL and a few IDs are collection variables so you can fill them in once and reuse them across requests.\n\nAuth: Login sets an `accessToken` cookie on success, which Postman's cookie jar carries automatically to later requests against the same `baseUrl` — run Login once per session before hitting quiz routes, all of which now require authentication.\n\nRoles: every new user registers as role `user`. Create/Update Quiz require role `admin`, so to exercise those two requests you'll need to manually set a user's `role` to `admin` in the database first (there's no self-serve way to become admin through the API, by design). List/Get Quiz work for either role.\n\nNote on `questions`/`instructions`: these are JSON-stringified inside a text form-data field (multipart can't carry nested arrays natively) — the server parses that string back into an array before validation. `instructions` on Create Quiz is currently omitted below since only `questions` has that parsing wired up so far.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -32,7 +32,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["auth", "signup"]
             },
-            "description": "firstName/lastName require min length 5. password/confirmPassword must match."
+            "description": "firstName/lastName require min length 2. password/confirmPassword must match. On success, an accessToken cookie is set and the created user + token are returned in the response body."
           }
         },
         {
@@ -128,7 +128,6 @@
                 { "key": "description", "value": "Covers OSI layers, IP addressing, and routing basics.", "type": "text" },
                 { "key": "time", "value": "60", "type": "text" },
                 { "key": "passingThreshold", "value": "70", "type": "text" },
-                { "key": "instructions", "value": "[\"Read each question carefully.\", \"You cannot pause the timer once started.\"]", "type": "text" },
                 { "key": "diplomaId", "value": "{{diplomaId}}", "type": "text" },
                 {
                   "key": "questions",
@@ -143,7 +142,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["quizzes"]
             },
-            "description": "time: 30-120. passingThreshold: 20-100 (optional, defaults server-side if omitted). questions: 1-10 items; each question needs 1+ options and 1+ correctOptionIndex; a 'radio' question must have exactly 1 correct index. quizPhoto is required. See the collection-level description for the multipart/JSON-array caveat."
+            "description": "Requires an admin session (log in as a user with role=admin first). time: 30-120. passingThreshold: 20-100 (optional, defaults server-side if omitted). questions: 1-10 items, JSON-stringified (see collection-level note); each question needs 1+ options and 1+ correctOptionIndex; a 'radio' question must have exactly 1 correct index. quizPhoto is required."
           }
         },
         {
@@ -164,7 +163,38 @@
               "host": ["{{baseUrl}}"],
               "path": ["quizzes", "{{quizId}}"]
             },
-            "description": "All fields are optional (partial update) — only send the ones you want to change. quizPhoto is optional here, unlike on create."
+            "description": "Requires an admin session (log in as a user with role=admin first). All fields are optional (partial update) — only send the ones you want to change. quizPhoto is optional here, unlike on create."
+          }
+        },
+        {
+          "name": "List Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes?query=&page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"],
+              "query": [
+                { "key": "query", "value": "", "description": "Optional text search against quizName/description" },
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "10" }
+              ]
+            },
+            "description": "Requires any authenticated user (user or admin). page/size are optional — omit both to get all matching quizzes without pagination metadata."
+          }
+        },
+        {
+          "name": "Get Quiz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}"]
+            },
+            "description": "Requires any authenticated user (user or admin). 404s if the quiz doesn't exist."
           }
         }
       ]

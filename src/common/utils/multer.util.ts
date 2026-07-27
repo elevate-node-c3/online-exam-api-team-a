@@ -28,7 +28,7 @@ export const cloudUpload = (
               import.meta.dirname,
               '..',
               '..',
-              '/uploads',
+              'uploads',
               subfolder,
             );
             if (!existsSync(uploadsPath))
@@ -40,7 +40,7 @@ export const cloudUpload = (
             file: Express.Multer.File,
             callback: (error: Error | null, destination: string) => void,
           ) {
-            callback(null, `${file.filename}/${buildFileName(req, file)}`);
+            callback(null, buildFileName(req, file));
           },
         });
 

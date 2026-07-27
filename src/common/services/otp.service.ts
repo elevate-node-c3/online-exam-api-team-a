@@ -68,7 +68,7 @@ export class OtpService {
       throw new NotFoundException('No OTP found or code has expired');
 
     if ((JSON.parse(otpRaw as string) as { verified: boolean }).verified) {
-      throw new ConflictException('OTP has been verified ');
+      throw new ConflictException('OTP has already been verified');
     }
     const { hashedOtp, attempts } = JSON.parse(otpRaw as string) as {
       hashedOtp: string;

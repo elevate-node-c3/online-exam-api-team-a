@@ -1,6 +1,7 @@
 import { quizRepo, QuizRepo } from '../../common/repositories/quiz.repo';
 import {
   createQuizDTO,
+  quizListQueryDTO,
   updateQuizDTO,
 } from '../../common/schemas/quiz.schema';
 import {
@@ -73,6 +74,23 @@ export class QuizService {
     });
 
     return this.quizRepo.findOne({ filter: { _id: id } });
+  }
+
+  async getQuiz(id: string) {
+    const quiz = await this.quizRepo.findOne({ filter: { _id: id } });
+    if (!quiz) throw new NotFoundException('quiz not found');
+    return quiz;
+  }
+
+  async getQuizzes({ query, page, size }: quizListQueryDTO) {
+    const filter = query ? { $text: { $search: query } } : {};
+
+    return this.quizRepo.paginate({
+      filter,
+      options: { lean: true },
+      page,
+      size,
+    });
   }
 }
 

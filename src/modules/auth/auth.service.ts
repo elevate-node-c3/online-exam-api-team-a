@@ -7,8 +7,10 @@ import {
 import { NotFoundException, UnauthorizedException } from '../../common/utils/exception.util';
 import { smtpService } from '../../common/services/smtp.service';
 import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto';
+import {
+  loginDTO,
+  registerDTO,
+} from '../../common/schemas/auth.schema';
 import { TokenService, tokenService } from '../../common/services/token.service';
 import { SignOptions } from 'jsonwebtoken';
 
@@ -38,7 +40,7 @@ export class AuthService {
   }
 
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: loginDTO) {
     const user = await this.findUser(loginDto.email);
     if (!user) throw new NotFoundException('User not found');
 
@@ -60,7 +62,7 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: registerDTO) {
     const { email, password, firstName, lastName } = registerDto;
     const hashedPassword = await this.securityService.hash(password);
 

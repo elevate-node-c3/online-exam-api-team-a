@@ -9,6 +9,6 @@ export const ROUTES = {
   },
   QUIZ:{
     BASE:"/quizzes",
-    UPDATE: '/:id',
+    BY_ID: '/:id',
   }
 };
