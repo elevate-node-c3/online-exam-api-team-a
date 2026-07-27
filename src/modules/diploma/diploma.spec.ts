@@ -1,4 +1,3 @@
-import { describe, expect, it, jest } from '@jest/globals';
 import express, { NextFunction, Request, Response } from 'express';
 import { AddressInfo } from 'node:net';
 import { existsSync } from 'node:fs';
@@ -148,7 +147,7 @@ describe('DiplomaService', () => {
 
   it('maps the complete diploma list and handles an empty result', async () => {
     const find = jest
-      .fn<(_input: unknown) => Promise<unknown[] | null>>()
+      .fn()
       .mockResolvedValueOnce([
         {
           _id: diplomaId,
@@ -157,7 +156,7 @@ describe('DiplomaService', () => {
           photo: 'frontend.png',
         },
       ])
-      .mockResolvedValueOnce(null);
+      .mockResolvedValueOnce(null); // This will be returned on the second call
     const service = new DiplomaService({ find } as unknown as DiplomaRepo);
 
     await expect(service.getDiplomas()).resolves.toEqual([diplomaData]);
