@@ -15,6 +15,7 @@ import { smtpService } from './common/services/smtp.service';
 import { ROUTES } from './routes';
 import authRouter from './modules/auth/auth.router';
 import { quizRouter } from './modules/quiz/quiz.router';
+import { UPLOADS_ROOT } from './common/utils/multer.util';
 
 export const app = async () => {
   const APP: Express = express();
@@ -23,7 +24,7 @@ export const app = async () => {
   APP.use(cors({ origin: '*', credentials: true }));
   APP.use(express.json());
   APP.use(cookieParser());
-  APP.use('/uploads', express.static(path.resolve(import.meta.dirname, 'uploads')));
+  APP.use('/uploads', express.static(UPLOADS_ROOT));
   APP.use(initCredentials);
 
   try {

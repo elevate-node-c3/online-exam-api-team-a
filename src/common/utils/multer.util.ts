@@ -7,6 +7,8 @@ import { multerStorageType } from '../enums/multer.enum';
 import { resolve } from 'path';
 import { existsSync, mkdirSync } from 'node:fs';
 
+export const UPLOADS_ROOT = resolve(import.meta.dirname, '..', '..', 'uploads');
+
 export const cloudUpload = (
   opts: uploadOpts,
   storageTYPE: multerStorageType = multerStorageType.MEM,
@@ -24,13 +26,7 @@ export const cloudUpload = (
           ) {
             const subfolder = getUploadSubFolder(file.fieldname);
 
-            const uploadsPath = resolve(
-              import.meta.dirname,
-              '..',
-              '..',
-              'uploads',
-              subfolder,
-            );
+            const uploadsPath = resolve(UPLOADS_ROOT, subfolder);
             if (!existsSync(uploadsPath))
               mkdirSync(uploadsPath, { recursive: true });
             callback(null, uploadsPath);
