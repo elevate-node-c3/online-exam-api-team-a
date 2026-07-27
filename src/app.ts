@@ -1,8 +1,9 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import './models/index';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import './models/index';
 import { NotFoundException } from './common/utils/exception.util';
 import { serverLogger } from './common/utils/pino.util';
 import { globalErrorHandler } from './common/middlewares/globalError.middleware';
@@ -21,7 +22,7 @@ export const app = async () => {
   APP.use(cors({ origin: '*', credentials: true }));
   APP.use(express.json());
   APP.use(cookieParser());
-  APP.use('/uploads', express.static(resolve(import.meta.dirname, 'uploads')));
+  APP.use('/uploads', express.static(path.resolve(import.meta.dirname, 'uploads')));
 
   try {
     // Can be done better if used Promise.all([]);
@@ -51,6 +52,3 @@ export const app = async () => {
     process.exit(1);
   });
 };
-function resolve(dirname: string, arg1: string): string {
-  throw new Error('Function not implemented.');
-}

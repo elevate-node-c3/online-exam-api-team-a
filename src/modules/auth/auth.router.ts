@@ -7,6 +7,7 @@ import {
 import { ROUTES } from '../../routes';
 import { authController } from './auth.controller';
 import { Router } from 'express';
+import { registerSchema } from './dto/register.dto';
 
 const authRouter = Router();
 
@@ -27,5 +28,17 @@ authRouter.post(
   validate({ body: resetPasswordSchema }),
   authController.resetPasswordController.bind(authController),
 );
+
+authRouter.post(
+  ROUTES.AUTH.SIGNUP,
+  validate({ body: registerSchema }),
+  authController.registerController.bind(authController),
+);
+
+authRouter.get(
+  ROUTES.AUTH.LOGIN,
+  authController.loginController.bind(authController),
+
+)
 
 export default authRouter;

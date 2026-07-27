@@ -8,14 +8,17 @@ import { NotFoundException, UnauthorizedException } from '../../common/utils/exc
 import { smtpService } from '../../common/services/smtp.service';
 import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
 import { LoginDto } from './dto/login.dto';
-import { IUser } from '../../common/types/user.types';
-import * as jwt from "jsonwebtoken";
+import { RegisterDto } from './dto';
+import { TokenService, tokenService } from '../../common/services/token.service';
+import { SignOptions } from 'jsonwebtoken';
+
 
 export class AuthService {
   constructor(
     private readonly userRepo: UserRepo,
     private readonly securityService: SecurityService,
     private readonly otpService: OtpService,
+    private readonly tokenService: TokenService,
   ) {}
 
   private async findUser(email: string) {
@@ -27,33 +30,55 @@ export class AuthService {
         firstName: 1,
         password: 1,
         oldPasswords: 1,
+        role: 1,
       },
       options: { lean: false },
     });
     return user;
   }
 
-  private async createToken(user: IUser) {
-    const payload = { id: user._id, email: user.email, name: `${user.firstName} ${user.lastName}` };
-    // TODO: Use the expiration from the environment variable, but ensure it's a valid string or number
-    return jwt.sign(payload, process.env.USER_ACCESS_SECRET!, { expiresIn: Number(process.env.USER_ACCESS_SECRET_EXPIRATION)  ?? '1h' });
-  }
 
   async login(loginDto: LoginDto) {
     const user = await this.findUser(loginDto.email);
-    // Handle the case where the user is not found
     if (!user) throw new NotFoundException('User not found');
 
     const isPasswordValid = await this.securityService.verify(
-      loginDto.password,
       user.password,
+      loginDto.password,
     );
     if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
 
-    return { success: true, message: 'Logged in successfully', token: await this.createToken(user) };
+    return {
+      success: true,
+      message: 'User logged in successfully',
+      token: await this.tokenService.generateToken({
+        payload: { _id: String(user._id), email: user.email, role: user.role },
+        options: {
+            expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>,
+        },
+      }),
+    };
   }
 
-  async register() {}
+  async register(registerDto: RegisterDto) {
+    const { email, password, firstName, lastName } = registerDto;
+    const hashedPassword = await this.securityService.hash(password);
+
+    const user = await this.userRepo.create({
+      data: { firstName, lastName, email, password: hashedPassword },
+    });
+
+    return {
+      success: true,
+      message: 'User registered successfully',
+      token: await this.tokenService.generateToken({
+        payload: { _id: String(user._id), email: user.email, role: user.role },
+        options: {expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>},
+
+      }),
+    };
+  }
+
 
   async sendForgetPasswordOTP({ email }: { email: string }) {
     const user = await this.findUser(email);
@@ -105,4 +130,4 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService(userRepo, securityService, otpService);
+export const authService = new AuthService(userRepo, securityService, otpService, tokenService);
