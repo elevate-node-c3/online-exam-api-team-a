@@ -1,0 +1,173 @@
+{
+  "info": {
+    "_postman_id": "b6a2f2b0-6e2a-4c9a-9c1a-online-exam-api",
+    "name": "Online Exam API",
+    "description": "Collection covering the currently-implemented routes: auth (signup/login/forgot-password flow) and quiz (create/update). Base URL and a few IDs are collection variables so you can fill them in once and reuse them across requests.\n\nKnown limitation: POST /quizzes and PATCH /quizzes/:id require multipart/form-data (a photo file is part of the schema), but the `questions`/`instructions` fields are arrays/objects in the Zod schema. There is currently no server-side step that JSON-parses those multipart fields back into arrays before validation runs, so as-is those two requests will fail Zod validation on `questions` (received string, expected array) until that parsing middleware is added. The bodies below are shaped correctly per the schema for when that's in place.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "email", "value": "student@example.com" },
+    { "key": "otp", "value": "123456" },
+    { "key": "diplomaId", "value": "000000000000000000000000" },
+    { "key": "quizId", "value": "000000000000000000000000" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\",\n  \"confirmPassword\": \"Passw0rd!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            },
+            "description": "firstName/lastName require min length 5. password/confirmPassword must match."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Note: this route is a GET with a body in the current implementation. On success, an accessToken cookie is set and the token is also returned in the response body."
+          }
+        },
+        {
+          "name": "Send Forgot-Password OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Sends a 6-digit OTP to the given email if a matching user exists. The OTP expires in 2 minutes."
+          }
+        },
+        {
+          "name": "Verify Forgot-Password OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password", "verify-otp"]
+            },
+            "description": "otp must be exactly 6 digits."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"newPassword\": \"NewPassw0rd!\",\n  \"confirmPassword\": \"NewPassw0rd!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "Requires the OTP to have been verified first. newPassword must be 8+ chars with at least one uppercase letter, one number, and one symbol, and must match confirmPassword."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quiz",
+      "item": [
+        {
+          "name": "Create Quiz",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "quizName", "value": "Intro to Networking Final", "type": "text" },
+                { "key": "description", "value": "Covers OSI layers, IP addressing, and routing basics.", "type": "text" },
+                { "key": "time", "value": "60", "type": "text" },
+                { "key": "passingThreshold", "value": "70", "type": "text" },
+                { "key": "instructions", "value": "[\"Read each question carefully.\", \"You cannot pause the timer once started.\"]", "type": "text" },
+                { "key": "diplomaId", "value": "{{diplomaId}}", "type": "text" },
+                {
+                  "key": "questions",
+                  "value": "[{\"text\":\"Which layer handles routing?\",\"type\":\"radio\",\"options\":[{\"text\":\"Physical\"},{\"text\":\"Network\"},{\"text\":\"Session\"}],\"correctOptionIndex\":[1]},{\"text\":\"Which of these are private IP ranges?\",\"type\":\"check\",\"options\":[{\"text\":\"10.0.0.0/8\"},{\"text\":\"8.8.8.8\"},{\"text\":\"192.168.0.0/16\"}],\"correctOptionIndex\":[0,2]}]",
+                  "type": "text"
+                },
+                { "key": "quizPhoto", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"]
+            },
+            "description": "time: 30-120. passingThreshold: 20-100 (optional, defaults server-side if omitted). questions: 1-10 items; each question needs 1+ options and 1+ correctOptionIndex; a 'radio' question must have exactly 1 correct index. quizPhoto is required. See the collection-level description for the multipart/JSON-array caveat."
+          }
+        },
+        {
+          "name": "Update Quiz",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "quizName", "value": "Intro to Networking Final (v2)", "type": "text" },
+                { "key": "passingThreshold", "value": "75", "type": "text" },
+                { "key": "quizPhoto", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}"]
+            },
+            "description": "All fields are optional (partial update) — only send the ones you want to change. quizPhoto is optional here, unlike on create."
+          }
+        }
+      ]
+    }
+  ]
+}
