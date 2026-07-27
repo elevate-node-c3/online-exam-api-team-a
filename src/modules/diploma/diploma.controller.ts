@@ -1,9 +1,8 @@
-import { DiplomaService, diplomaService } from './diploma.service.js';
-import { Request, Response, NextFunction } from 'express';
-import {
-  createDiplomaDTO,
-} from '../../common/schemas/diploma.schema.js';
+import { NextFunction, Request, Response } from 'express';
+import { unlink } from 'node:fs/promises';
+import { createDiplomaDTO } from '../../common/schemas/diploma.schema.js';
 import { successRes } from '../../common/utils/response.util.js';
+import { DiplomaService, diplomaService } from './diploma.service.js';
 
 export class DiplomaController {
   constructor(private readonly diplomaService: DiplomaService) {}
@@ -12,7 +11,9 @@ export class DiplomaController {
     try {
       const data = await this.diplomaService.createDiploma(
         req.body as createDiplomaDTO,
+        req.file,
       );
+
       successRes({
         res,
         message: 'Diploma created successfully',
@@ -20,12 +21,15 @@ export class DiplomaController {
         data,
       });
     } catch (err) {
+      if (req.file) await unlink(req.file.path).catch(() => {});
       next(err);
     }
   }
-  async getAllDiplomas(req: Request, res: Response, next: NextFunction) {
+
+  async getAllDiplomas(_req: Request, res: Response, next: NextFunction) {
     try {
       const data = await this.diplomaService.getDiplomas();
+
       successRes({
         res,
         message: 'Diplomas fetched successfully',

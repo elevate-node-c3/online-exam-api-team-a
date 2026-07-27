@@ -442,7 +442,7 @@ _None_
 **Access:** Protected (`admin` only)
 **Content-Type:** `multipart/form-data`
 
-**Form Data**:
+**Form Data**
 
 | Field                | Type | Required | Description                         |
 | -------------------- | ---- | -------- | ----------------------------------- |
@@ -460,10 +460,10 @@ _None_
     "diplomaId": "string",
     "diplomaName": "string",
     "diplomaDescription": "string",
-    "diplomaPhoto": "/uploads/diploma-photos/string"
+    "photo": "/uploads/diploma-photos/string"
   }
 }
 ```
 
-`diplomaPhoto` is `null` when no file is uploaded. When present, it is a public
+`photo` is `null` when no file is uploaded. When present, it is a public
 path relative to the API origin.
