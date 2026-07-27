@@ -14,11 +14,11 @@ diplomaRouter.post(
   '/',
   auth,
   checkRole([UserRole.ADMIN]),
+  uploadPhoto.single('diplomaPhoto'),
   validate({
     body: createDiplomaSchema,
     file: mutlerFileSchema.optional(),
   }),
-  uploadPhoto.single('diplomaPhoto'),
   diplomaController.createDiploma.bind(diplomaController),
 );
 
