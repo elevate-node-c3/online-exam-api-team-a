@@ -1,11 +1,6 @@
 import { Response, Request } from 'express';
-<<<<<<< Updated upstream
 import { IUser } from './user.types';
 import { UserRole } from '../enums/user.enum';
-=======
-import { IUser } from './user.types.js';
-import { UserRole } from '../enums/user.enum.js';
->>>>>>> Stashed changes
 import { SignOptions } from 'jsonwebtoken';
 
 export interface successResponseDTO<T> {
