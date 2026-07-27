@@ -1,61 +1,60 @@
-import { UserRepo, userRepo } from '../../common/repositories/diploma.repo.js';
-import { OtpService, otpService } from '../../common/services/otp.service.js';
 import {
-  SecurityService,
-  securityService,
-} from '../../common/services/securtiy.service.js';
-import { NotFoundException } from '../../common/utils/exception.util.js';
-import { smtpService } from '../../common/services/smtp.service.js';
-import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template.js';
+  DiplomaRepo,
+  diplomaRepo,
+} from '../../common/repositories/diploma.repo.js';
+import { createDiplomaDTO } from '../../common/schemas/diploma.schema.js';
+import { DiplomaData } from '../../common/types/diploma.types.js';
+
+type DiplomaRecord = {
+  _id: unknown;
+  diplomaName: string;
+  diplomaDescription: string;
+  photo?: string;
+};
 
 export class DiplomaService {
-  constructor(
-    private readonly diplomaRepo: DiplomaRepo,
-  ) {}
+  constructor(private readonly diplomaRepo: DiplomaRepo) {}
 
-  private async findUser(email: string) {
-    const user = await this.userRepo.findOne({
-      filter: { email: email },
-      projection: {
-        email: 1,
-        _id: 1,
-        firstName: 1,
-        password: 1,
-        oldPasswords: 1,
+  private toDiplomaData(diploma: DiplomaRecord): DiplomaData {
+    return {
+      diplomaId: String(diploma._id),
+      diplomaName: diploma.diplomaName,
+      diplomaDescription: diploma.diplomaDescription,
+      photo: diploma.photo
+        ? `/uploads/diploma-photos/${encodeURIComponent(diploma.photo)}`
+        : null,
+    };
+  }
+
+  async createDiploma(
+    dto: createDiplomaDTO,
+    photo?: Express.Multer.File,
+  ): Promise<DiplomaData> {
+    const diploma = await this.diplomaRepo.create({
+      data: {
+        ...dto,
+        ...(photo && { photo: photo.filename }),
       },
-      options: { lean: false },
     });
-    return user;
+
+    return this.toDiplomaData(diploma);
   }
 
-  async sendForgetPasswordOTP({ email }: { email: string }) {
-    const user = await this.findUser(email);
-    if (!user) return;
-
-    const otp = await this.otpService.send(user._id, 'FORGET-PASSWORD');
-
-    await smtpService.sendMail({
-      to: email,
-      subject: 'Your password reset code',
-      html: forgetPasswordOTPTemplate({ otp, firstName: user.firstName }),
+  async getDiplomas(): Promise<DiplomaData[]> {
+    const diplomas = await this.diplomaRepo.find({
+      filter: {},
+      projection: {
+        diplomaName: 1,
+        diplomaDescription: 1,
+        photo: 1,
+      },
+      options: { lean: true },
     });
-  }
 
-  async verifyForgotPasswordOTP({
-    email,
-    otp,
-  }: {
-    email: string;
-    otp: string;
-  }) {
-    const user = await this.findUser(email);
-    if (!user) return;
-    await this.otpService.verify(user._id, 'FORGET-PASSWORD', otp);
+    return (diplomas ?? []).map((diploma) =>
+      this.toDiplomaData(diploma as DiplomaRecord),
+    );
   }
 }
 
-export const diplomaService = new DiplomaService(
-  userRepo,
-  securityService,
-  otpService,
-);
+export const diplomaService = new DiplomaService(diplomaRepo);
