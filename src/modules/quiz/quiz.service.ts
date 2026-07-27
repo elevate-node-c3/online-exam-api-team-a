@@ -92,6 +92,13 @@ export class QuizService {
       size,
     });
   }
+
+  async deleteQuiz(id: string) {
+    const quiz = await this.quizRepo.findOne({ filter: { _id: id } });
+    if (!quiz) throw new NotFoundException('quiz not found');
+
+    await this.quizRepo.deleteOne({ filter: { _id: id } });
+  }
 }
 
 export const quizService = new QuizService(quizRepo, diplomaRepo);

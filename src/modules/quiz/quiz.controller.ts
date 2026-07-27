@@ -77,6 +77,19 @@ export class QuizController {
       next(err);
     }
   }
+
+  async deleteQuizController(req: Request, res: Response, next: NextFunction) {
+    try {
+      await this.quizService.deleteQuiz(req.params.id as string);
+      successRes({
+        res,
+        message: 'Quiz deleted successfully',
+        status: 200,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const quizController = new QuizController(quizService);

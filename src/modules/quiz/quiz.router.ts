@@ -53,3 +53,11 @@ quizRouter.get(
   validate({ params: quizIdParamSchema }),
   quizController.getQuizController.bind(quizController),
 );
+
+quizRouter.delete(
+  ROUTES.QUIZ.BY_ID,
+  auth,
+  checkRole([UserRole.ADMIN]),
+  validate({ params: quizIdParamSchema }),
+  quizController.deleteQuizController.bind(quizController),
+);
