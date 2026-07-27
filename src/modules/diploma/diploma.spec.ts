@@ -13,15 +13,15 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import multer from 'multer';
-import { DiplomaRepo } from '../../common/repositories/diploma.repo.js';
-import { createDiplomaSchema } from '../../common/schemas/diploma.schema.js';
-import { mutlerFileSchema } from '../../common/schemas/global.schema.js';
-import { globalErrorHandler } from '../../common/middlewares/globalError.middleware.js';
-import { validate } from '../../common/middlewares/validation.middleware.js';
-import { DiplomaData } from '../../common/types/diploma.types.js';
-import { UPLOADS_ROOT } from '../../common/utils/multer.util.js';
-import { DiplomaController } from './diploma.controller.js';
-import { DiplomaService } from './diploma.service.js';
+import { DiplomaRepo } from '../../common/repositories/diploma.repo';
+import { createDiplomaSchema } from '../../common/schemas/diploma.schema';
+import { mutlerFileSchema } from '../../common/schemas/global.schema';
+import { globalErrorHandler } from '../../common/middlewares/globalError.middleware';
+import { validate } from '../../common/middlewares/validation.middleware';
+import { DiplomaData } from '../../common/types/diploma.types';
+import { UPLOADS_ROOT } from '../../common/utils/multer.util';
+import { DiplomaController } from './diploma.controller';
+import { DiplomaService } from './diploma.service';
 
 const diplomaId = '507f1f77bcf86cd799439011';
 

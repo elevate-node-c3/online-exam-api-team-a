@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IDiploma } from '../common/types/diploma.types.js';
+import { IDiploma } from '../common/types/diploma.types';
 
 const diplomaSchema = new Schema<IDiploma>(
   {

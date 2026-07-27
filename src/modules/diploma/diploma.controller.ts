@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { unlink } from 'node:fs/promises';
-import { createDiplomaDTO } from '../../common/schemas/diploma.schema.js';
-import { successRes } from '../../common/utils/response.util.js';
-import { DiplomaService, diplomaService } from './diploma.service.js';
+import { createDiplomaDTO } from '../../common/schemas/diploma.schema';
+import { successRes } from '../../common/utils/response.util';
+import { DiplomaService, diplomaService } from './diploma.service';
 
 export class DiplomaController {
   constructor(private readonly diplomaService: DiplomaService) {}

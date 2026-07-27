@@ -1,9 +1,9 @@
 import {
   DiplomaRepo,
   diplomaRepo,
-} from '../../common/repositories/diploma.repo.js';
-import { createDiplomaDTO } from '../../common/schemas/diploma.schema.js';
-import { DiplomaData } from '../../common/types/diploma.types.js';
+} from '../../common/repositories/diploma.repo';
+import { createDiplomaDTO } from '../../common/schemas/diploma.schema';
+import { DiplomaData } from '../../common/types/diploma.types';
 
 type DiplomaRecord = {
   _id: unknown;
