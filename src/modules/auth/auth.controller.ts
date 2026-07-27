@@ -9,6 +9,7 @@ import {
 import { RegisterDto } from './dto/register.dto';
 
 import { successRes } from '../../common/utils/response.util';
+import { accessTokenCookieOptions } from '../../common/configs/cookie.config';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -19,11 +20,13 @@ export class AuthController {
       next: NextFunction,
     ) {
       try {
-        await this.authService.register(req.body as RegisterDto);
+        const result = await this.authService.register(req.body as RegisterDto);
+        res.cookie('accessToken', result.token, accessTokenCookieOptions);
         successRes({
           res,
           message: 'User registered successfully',
           status: 201,
+          data: result,
         });
       } catch (error) {
         next(error);
@@ -37,6 +40,7 @@ export class AuthController {
     ) {
       try {
         const result = await this.authService.login(req.body);
+        res.cookie('accessToken', result.token, accessTokenCookieOptions);
         successRes({
           res,
           message: 'User logged in successfully',
