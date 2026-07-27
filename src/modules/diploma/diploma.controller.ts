@@ -1,9 +1,8 @@
 import { DiplomaService, diplomaService } from './diploma.service.js';
 import { Request, Response, NextFunction } from 'express';
 import {
-  forgetPassowrdOTPDTO,
-  verifyForgetPasswordOTPDTO,
-} from '../../common/schemas/auth.schema.js';
+  createDiplomaDTO,
+} from '../../common/schemas/diploma.schema.js';
 import { successRes } from '../../common/utils/response.util.js';
 
 export class DiplomaController {
@@ -11,13 +10,14 @@ export class DiplomaController {
 
   async createDiploma(req: Request, res: Response, next: NextFunction) {
     try {
-      await this.diplomaService.sendForgetPasswordOTP(
-        req.body as forgetPassowrdOTPDTO,
+      const data = await this.diplomaService.createDiploma(
+        req.body as createDiplomaDTO,
       );
       successRes({
         res,
-        message: 'Password reset code sent successfully',
-        status: 200,
+        message: 'Diploma created successfully',
+        status: 201,
+        data,
       });
     } catch (err) {
       next(err);
@@ -25,13 +25,12 @@ export class DiplomaController {
   }
   async getAllDiplomas(req: Request, res: Response, next: NextFunction) {
     try {
-      await this.diplomaService.verifyForgotPasswordOTP(
-        req.body as verifyForgetPasswordOTPDTO,
-      );
+      const data = await this.diplomaService.getDiplomas();
       successRes({
         res,
-        message: 'OTP verified',
+        message: 'Diplomas fetched successfully',
         status: 200,
+        data,
       });
     } catch (err) {
       next(err);

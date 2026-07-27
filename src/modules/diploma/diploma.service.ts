@@ -1,4 +1,4 @@
-import { UserRepo, userRepo } from '../../common/repositories/user.repo.js';
+import { UserRepo, userRepo } from '../../common/repositories/diploma.repo.js';
 import { OtpService, otpService } from '../../common/services/otp.service.js';
 import {
   SecurityService,
@@ -10,9 +10,7 @@ import { forgetPasswordOTPTemplate } from '../../common/templates/forget-passwor
 
 export class DiplomaService {
   constructor(
-    private readonly userRepo: UserRepo,
-    private readonly securityService: SecurityService,
-    private readonly otpService: OtpService,
+    private readonly diplomaRepo: DiplomaRepo,
   ) {}
 
   private async findUser(email: string) {
