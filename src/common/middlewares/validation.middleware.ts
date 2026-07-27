@@ -1,12 +1,26 @@
 import * as z from 'zod';
 import { NextFunction, Request, Response } from 'express';
+import { unlink } from 'node:fs/promises';
 import { errorRes } from '../utils/response.util';
 
 type schemaKeys = Partial<Record<keyof Request, z.ZodType>>;
 
+const removeUploadedFiles = async (req: Request) => {
+  const files = [
+    ...(req.file ? [req.file] : []),
+    ...(Array.isArray(req.files)
+      ? req.files
+      : Object.values(req.files ?? {}).flat()),
+  ];
+
+  await Promise.all(
+    files.map((file) => unlink(file.path).catch(() => undefined)),
+  );
+};
+
 export const validate = (schema: schemaKeys) => {
   const validationKeys = Object.keys(schema) as (keyof Request)[];
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const issues: z.core.$ZodIssue[] = [];
     validationKeys.forEach((key) => {
       const validationRes = schema[key]!.safeParse(req[key]);
@@ -20,6 +34,7 @@ export const validate = (schema: schemaKeys) => {
       }
     });
     if (issues.length > 0) {
+      await removeUploadedFiles(req);
       return errorRes({
         res,
         message: 'Validation Error',

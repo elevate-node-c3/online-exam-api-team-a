@@ -211,6 +211,57 @@
           }
         }
       ]
+    },
+    {
+      "name": "Diploma",
+      "item": [
+        {
+          "name": "Create Diploma",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "diplomaName",
+                  "value": "Frontend Development",
+                  "type": "text"
+                },
+                {
+                  "key": "diplomaDescription",
+                  "value": "Covers modern frontend development fundamentals.",
+                  "type": "text"
+                },
+                {
+                  "key": "diplomaPhoto",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diplomas",
+              "host": ["{{baseUrl}}"],
+              "path": ["diplomas"]
+            },
+            "description": "Requires an authenticated admin. diplomaPhoto is optional and accepts JPEG, PNG, or WebP files up to 2 MB."
+          }
+        },
+        {
+          "name": "List Diplomas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/diplomas",
+              "host": ["{{baseUrl}}"],
+              "path": ["diplomas"]
+            },
+            "description": "Requires any authenticated user. Photo values are public paths under /uploads/diploma-photos, or null when no photo was uploaded."
+          }
+        }
+      ]
     }
   ]
 }

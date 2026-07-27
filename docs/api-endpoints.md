@@ -416,40 +416,54 @@ _None_
 ## Diplomas
 
 ### GET `/diplomas`
-**Access:** Protected
+
+**Access:** Protected (`user` or `admin`)
 **Body**
 _None_
 **Response**
+
 ```json
 {
-  "success": true,
-  "message": "string",
-  "diplomaData": [
+  "statusCode": 200,
+  "message": "Diplomas fetched successfully",
+  "data": [
     {
       "diplomaId": "string",
       "diplomaName": "string",
       "diplomaDescription": "string",
-      "photo": "string"
+      "photo": "/uploads/diploma-photos/string"
     }
   ]
 }
 ```
 
 ### POST `/diplomas`
-**Access:** Protected
-**Body**
-```json
-{
-  "diplomaName": "string",
-  "diplomaDescription": "string",
-  "photo": "string"
-}
-```
+
+**Access:** Protected (`admin` only)
+**Content-Type:** `multipart/form-data`
+
+**Form Data**
+
+| Field                | Type | Required | Description                         |
+| -------------------- | ---- | -------- | ----------------------------------- |
+| `diplomaName`        | Text | Yes      | Diploma name                        |
+| `diplomaDescription` | Text | Yes      | Diploma description                 |
+| `diplomaPhoto`       | File | No       | JPEG, PNG, or WebP image up to 2 MB |
+
 **Response**
+
 ```json
 {
-  "success": true,
-  "message": "string",
-  "diplomaData": { ... }
+  "statusCode": 201,
+  "message": "Diploma created successfully",
+  "data": {
+    "diplomaId": "string",
+    "diplomaName": "string",
+    "diplomaDescription": "string",
+    "photo": "/uploads/diploma-photos/string"
+  }
 }
 ```
+
+`photo` is `null` when no file is uploaded. When present, it is a public
+path relative to the API origin.

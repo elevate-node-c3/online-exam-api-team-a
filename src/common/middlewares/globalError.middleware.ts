@@ -22,6 +22,12 @@ export const globalErrorHandler = (
       status = 409;
       const field = Object.keys(raw.keyValue ?? {})[0];
       message = field ? `${field} already exists` : 'Resource already exists';
+    } else if (raw.name === 'MulterError') {
+      status = raw.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+      message =
+        raw.code === 'LIMIT_FILE_SIZE'
+          ? 'Uploaded file is too large'
+          : 'Invalid file upload';
     } else if (raw.name === 'ValidationError' || raw.name === 'CastError') {
       status = 400;
     }
