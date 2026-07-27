@@ -149,14 +149,12 @@ describe('DiplomaService', () => {
   it('maps the complete diploma list and handles an empty result', async () => {
     const find = jest
       .fn<
-        (_input: unknown) => Promise<
-          Array<{
-            _id: string;
-            diplomaName: string;
-            diplomaDescription: string;
-            photo?: string;
-          }> | null
-        >
+        (_input: unknown) => Promise<Array<{
+          _id: string;
+          diplomaName: string;
+          diplomaDescription: string;
+          photo?: string;
+        }> | null>
       >()
       .mockResolvedValueOnce([
         {
