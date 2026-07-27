@@ -22,8 +22,6 @@ export const ENCRYPTION_ALGORITHM = process.env.ENCRYPTION_ALGORITHM as string;
 export const REDIS_URL = process.env.REDIS_URL as string;
 
 export const USER_ACCESS_SECRET = process.env.USER_ACCESS_SECRET as string;
-export const USER_REFRESH_SECRET = process.env.USER_REFRESH_SECRET as string;
 export const ADMIN_ACCESS_SECRET = process.env.ADMIN_ACCESS_SECRET as string;
-export const ADMIN_REFRESH_SECRET = process.env.ADMIN_REFRESH_SECRET as string;
 
 export const CLIENT_URL = process.env.CLIENT_URL as string;

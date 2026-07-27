@@ -13,6 +13,7 @@ const quizQuestionSchema = z.strictObject({
   correctOptionIndex: z.array(z.number()).min(1),
 });
 
+<<<<<<< Updated upstream
 const unwrapMultipartField = (value: unknown) =>
   Array.isArray(value) ? value[0] : value;
 
@@ -48,6 +49,27 @@ const validateQuestions = (
       if (optionIndex < 0 || optionIndex >= question.options.length) {
         ctx.addIssue({
           code: 'custom',
+=======
+const quizBaseSchema = z.strictObject({
+  quizName: z.string().min(3),
+  description: z.string(),
+  time: z.number().min(30).max(120),
+  instructions: z.array(z.string()).optional(),
+  passingThreshold: z.number().min(20).max(100).optional(),
+  diplomaId: objectIdSchema,
+  questions: z.array(quizQuestionSchema).min(1).max(10),
+});
+
+const validateQuestions = (
+  questions: z.infer<typeof quizQuestionSchema>[],
+  ctx: z.core.$RefinementCtx,
+) => {
+  questions.forEach((question, qIndex) => {
+    question.correctOptionIndex.forEach((optionIndex) => {
+      if (optionIndex < 0 || optionIndex >= question.options.length) {
+        ctx.addIssue({
+          code: 'custom',
+>>>>>>> Stashed changes
           message: `correctOptionIndex ${optionIndex} is out of range for question ${qIndex}`,
           path: ['questions', qIndex, 'correctOptionIndex'],
         });
@@ -80,6 +102,7 @@ export const quizIdParamSchema = z.strictObject({
   id: objectIdSchema,
 });
 
+<<<<<<< Updated upstream
 export const quizListQuerySchema = z.object({
   query: z.string().optional(),
   page: z.coerce.number().min(1).optional(),
@@ -89,3 +112,7 @@ export const quizListQuerySchema = z.object({
 export type createQuizDTO = z.infer<typeof createQuizSchema>;
 export type updateQuizDTO = z.infer<typeof updateQuizSchema>;
 export type quizListQueryDTO = z.infer<typeof quizListQuerySchema>;
+=======
+export type createQuizDTO = z.infer<typeof createQuizSchema>;
+export type updateQuizDTO = z.infer<typeof updateQuizSchema>;
+>>>>>>> Stashed changes
