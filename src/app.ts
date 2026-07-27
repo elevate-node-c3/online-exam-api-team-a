@@ -2,7 +2,6 @@ import express, { Express, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 import './models/index';
 import { NotFoundException } from './common/utils/exception.util';
 import { serverLogger } from './common/utils/pino.util';
@@ -15,6 +14,7 @@ import { smtpService } from './common/services/smtp.service';
 import { ROUTES } from './routes';
 import authRouter from './modules/auth/auth.router';
 import { quizRouter } from './modules/quiz/quiz.router';
+import { diplomaRouter } from './modules/diploma/diploma.router';
 import { UPLOADS_ROOT } from './common/utils/multer.util';
 
 export const app = async () => {
@@ -39,6 +39,7 @@ export const app = async () => {
 
   APP.use(ROUTES.AUTH.BASE, authRouter);
   APP.use(ROUTES.QUIZ.BASE, quizRouter);
+  APP.use(ROUTES.DIPLOMA.BASE, diplomaRouter);
 
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());

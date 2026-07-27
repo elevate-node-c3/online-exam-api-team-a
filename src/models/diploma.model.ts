@@ -1,10 +1,10 @@
-import { Schema, model } from "mongoose";
-import { IDiploma } from "../common/types/diploma.types.js";
+import { Schema, model } from 'mongoose';
+import { IDiploma } from '../common/types/diploma.types.js';
 
 const diplomaSchema = new Schema<IDiploma>(
   {
-    diplomaName: { type: String },
-    diplomaDescription: { type: String },
+    diplomaName: { type: String, required: true, trim: true },
+    diplomaDescription: { type: String, required: true, trim: true },
     photo: { type: String },
   },
   {
@@ -14,7 +14,8 @@ const diplomaSchema = new Schema<IDiploma>(
     strictQuery: true,
     strict: true,
     optimisticConcurrency: true,
+    id: false,
   },
 );
 
-export const Diploma = model<IDiploma>("Diploma", diplomaSchema);
+export const Diploma = model<IDiploma>('Diploma', diplomaSchema);
