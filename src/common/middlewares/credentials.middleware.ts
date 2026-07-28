@@ -5,6 +5,6 @@ export const initCredentials = (
   _res: Response,
   next: NextFunction,
 ) => {
-  req.credentials = { user: {} };
+  req.credentials = { user: {}, jti: '' };
   next();
 };
