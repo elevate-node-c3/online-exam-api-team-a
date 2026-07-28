@@ -9,6 +9,8 @@ import {
 
 import { successRes } from '../../common/utils/response.util';
 import { accessTokenCookieOptions } from '../../common/configs/cookie.config';
+
+
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -50,6 +52,26 @@ export class AuthController {
       }
     }
     
+  async logoutController(
+    req: any,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const result = await this.authService.logout({
+        jti: req.credentials.jti,
+        userId: req.credentials.user._id,
+      });
+
+      successRes({
+        res,
+        message: result.message,
+        status: 200,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 
   async sendForgotPasswordOTPController(
     req: Request,

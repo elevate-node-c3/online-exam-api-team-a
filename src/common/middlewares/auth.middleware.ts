@@ -6,7 +6,7 @@ import { tokenService } from '../services/token.service';
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { user, jti, iat } = await tokenService.decodeToken({
-      token: req.cookies.accessToken,
+      token: req.headers.authorization!,
     });
 
     if (!user) {
@@ -18,9 +18,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (
-      await redisService.exists(
-        redisService.revokedTokenKey({ jti, userId: user._id }),
-      )
+      await redisService.exists(redisService.revokedTokenKey({ jti, userId: user._id }))
     ) {
       return errorRes({
         res,
@@ -39,6 +37,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     req.credentials.user = user as unknown as IUser;
+    req.credentials.jti = jti;
 
     next();
   } catch (err) {

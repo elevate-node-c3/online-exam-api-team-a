@@ -2,13 +2,14 @@ import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
   loginSchema,
-  registerSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
 } from '../../common/schemas/auth.schema';
 import { ROUTES } from '../../routes';
 import { authController } from './auth.controller';
 import { Router } from 'express';
+import { registerSchema } from './dto/register.dto';
+import { auth } from '../../common/middlewares/auth.middleware';
 
 const authRouter = Router();
 
@@ -36,10 +37,16 @@ authRouter.post(
   authController.registerController.bind(authController),
 );
 
-authRouter.get(
+authRouter.post(
   ROUTES.AUTH.LOGIN,
   validate({ body: loginSchema }),
   authController.loginController.bind(authController),
 );
+
+authRouter.delete(
+  ROUTES.AUTH.LOGOUT,
+  auth,
+  authController.logoutController.bind(authController),
+)
 
 export default authRouter;
