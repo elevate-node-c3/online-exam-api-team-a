@@ -2,7 +2,6 @@ import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
   loginSchema,
-  registerSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
 } from '../../common/schemas/auth.schema';
