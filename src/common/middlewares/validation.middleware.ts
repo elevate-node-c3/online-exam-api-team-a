@@ -12,6 +12,8 @@ export const validate = (schema: schemaKeys) => {
       const validationRes = schema[key]!.safeParse(req[key]);
       if (!validationRes.success) {
         issues.push(...validationRes.error.issues);
+      } else if (validationRes.data && typeof validationRes.data === 'object') {
+        Object.assign(req[key] as object, validationRes.data);
       } else {
         (req as unknown as Record<string, unknown>)[key as string] =
           validationRes.data;

@@ -6,16 +6,22 @@ import {
   IQuizQuestion,
 } from '../common/types/quiz.types';
 
-const quizOptionSchema = new Schema<IQuizOption>({
-  text: { type: String },
-});
+const quizOptionSchema = new Schema<IQuizOption>(
+  {
+    text: { type: String },
+  },
+  { id: false },
+);
 
-const quizQuestionSchema = new Schema<IQuizQuestion>({
-  text: { type: String },
-  type: { type: String, enum: Object.values(QuestionType) },
-  options: { type: [quizOptionSchema] },
-  correctOptionIndex: { type: [Number] },
-});
+const quizQuestionSchema = new Schema<IQuizQuestion>(
+  {
+    text: { type: String },
+    type: { type: String, enum: Object.values(QuestionType) },
+    options: { type: [quizOptionSchema] },
+    correctOptionIndex: { type: [Number] },
+  },
+  { id: false },
+);
 
 const quizSchema = new Schema<IQuiz>(
   {
@@ -40,6 +46,7 @@ const quizSchema = new Schema<IQuiz>(
     strictQuery: true,
     strict: true,
     optimisticConcurrency: true,
+    id: false,
   },
 );
 

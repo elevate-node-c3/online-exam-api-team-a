@@ -1,6 +1,8 @@
 import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
+  loginSchema,
+  registerSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
 } from '../../common/schemas/auth.schema';
@@ -37,8 +39,8 @@ authRouter.post(
 
 authRouter.get(
   ROUTES.AUTH.LOGIN,
+  validate({ body: loginSchema }),
   authController.loginController.bind(authController),
-
-)
+);
 
 export default authRouter;
