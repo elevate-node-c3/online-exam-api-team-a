@@ -29,6 +29,7 @@ declare global {
       requestedAt: Date;
       credentials: {
         user: Partial<IUser>;
+        jti: string;
       };
     }
   }

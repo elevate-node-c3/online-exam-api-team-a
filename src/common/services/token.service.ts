@@ -10,13 +10,15 @@ import {
 } from '../types/global.types';
 
 import { UserRepo, userRepo } from '../repositories/user.repo';
-
 import { nanoid } from 'nanoid';
 import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '../utils/exception.util';
 import { UserRole } from '../enums/user.enum';
+import { Token } from '../../models/token.model';
+import { MongoServerError } from 'mongodb';
+import { Types } from 'mongoose';
 
 export const token_secrets = {
   user: USER_ACCESS_SECRET,
@@ -32,7 +34,6 @@ export class TokenService {
       const secretKey = token_secrets[payload.role];
       if (!secretKey) throw new Error('Invalid token or user type');
       const jti = nanoid(25);
-
       return jwt.sign(payload, secretKey, { ...options, jwtid: jti });
     } catch (err) {
       throw new InternalServerErrorException('Failed to generate token', {
@@ -53,6 +54,16 @@ export class TokenService {
       throw new UnauthorizedException('Invalid or expired token', {
         cause: err,
       });
+    }
+  }
+
+  
+  async revokeToken({ jti, userId }: { jti: string, userId: Types.ObjectId }) {
+    try{
+      await Token.create({jwtid: jti, userId})
+    }catch(err){
+      if (err instanceof MongoServerError && err.code === 11000) throw new InternalServerErrorException('Token already revoked');
+      throw new InternalServerErrorException('Failed to revoke token', { cause: err }); 
     }
   }
 

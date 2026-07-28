@@ -11,6 +11,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto';
 import { TokenService, tokenService } from '../../common/services/token.service';
 import { SignOptions } from 'jsonwebtoken';
+import { redisService, RedisService } from '../../DB';
+import { Types } from 'mongoose';
 
 
 export class AuthService {
@@ -19,6 +21,7 @@ export class AuthService {
     private readonly securityService: SecurityService,
     private readonly otpService: OtpService,
     private readonly tokenService: TokenService,
+    private readonly redisService: RedisService,
   ) {}
 
   private async findUser(email: string) {
@@ -51,7 +54,7 @@ export class AuthService {
     return {
       success: true,
       message: 'User logged in successfully',
-      token: await this.tokenService.generateToken({
+      token: this.tokenService.generateToken({
         payload: { _id: String(user._id), email: user.email, role: user.role },
         options: {
             expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>,
@@ -67,15 +70,28 @@ export class AuthService {
     const user = await this.userRepo.create({
       data: { firstName, lastName, email, password: hashedPassword },
     });
+    
+    const token = this.tokenService.generateToken({
+    payload: { _id: String(user._id), email: user.email, role: user.role },
+    options: {expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>},
+    })
 
     return {
       success: true,
       message: 'User registered successfully',
-      token: await this.tokenService.generateToken({
-        payload: { _id: String(user._id), email: user.email, role: user.role },
-        options: {expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>},
+      token
+    };
+  }
 
-      }),
+  async logout({ jti, userId }: { jti: string, userId: Types.ObjectId }) {
+    await this.tokenService.revokeToken({ jti, userId });
+    await this.redisService.set({
+      key: this.redisService.revokedTokenKey({ jti, userId }),
+      value: 1
+    })
+    return {
+      success: true,
+      message: 'User logged out successfully',
     };
   }
 
@@ -130,4 +146,4 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService(userRepo, securityService, otpService, tokenService);
+export const authService = new AuthService(userRepo, securityService, otpService, tokenService, redisService);

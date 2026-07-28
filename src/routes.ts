@@ -6,6 +6,7 @@ export const ROUTES = {
     SEND_FORGOT_PASSWORD_OTP: '/forgot-password',
     VERIFY_FORGOT_PASSWORD_OTP: '/forgot-password/verify-otp',
     RESET_PASSWORD: '/reset-password',
+    LOGOUT: '/logout',
   },
   QUIZ:{
     BASE:"/quizzes",
