@@ -13,6 +13,7 @@ import {
 import { uploadPhoto } from '../../common/utils/multer.util.js';
 import { mutlerFileSchema } from '../../common/schemas/global.schema.js';
 import { quizController } from './quiz.controller.js';
+import { attemptController } from '../attempt/attempt.controller.js';
 
 export const quizRouter = Router();
 
@@ -60,4 +61,12 @@ quizRouter.delete(
   checkRole([UserRole.ADMIN]),
   validate({ params: quizIdParamSchema }),
   quizController.deleteQuizController.bind(quizController),
+);
+
+quizRouter.post(
+  ROUTES.QUIZ.START,
+  auth,
+  checkRole([UserRole.USER, UserRole.ADMIN]),
+  validate({ params: quizIdParamSchema }),
+  attemptController.startQuizController.bind(attemptController),
 );
