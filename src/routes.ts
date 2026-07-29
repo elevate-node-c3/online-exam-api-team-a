@@ -15,4 +15,10 @@ export const ROUTES = {
   DIPLOMA: {
     BASE: '/diplomas',
   },
+  PROFILE:{
+    BASE: '/profile',
+    GETPROFILE: '/get-profile',
+    UPDATEPROFILE: '/update-profile/',
+    GETPROFILEBYID: '/get-profile/:id',
+  }
 };

@@ -16,6 +16,7 @@ import authRouter from './modules/auth/auth.router';
 import { quizRouter } from './modules/quiz/quiz.router';
 import { diplomaRouter } from './modules/diploma/diploma.router';
 import { UPLOADS_ROOT } from './common/utils/multer.util';
+import profileRouter from './modules/profile/profile.router';
 
 export const app = async () => {
   const APP: Express = express();
@@ -40,6 +41,7 @@ export const app = async () => {
   APP.use(ROUTES.AUTH.BASE, authRouter);
   APP.use(ROUTES.QUIZ.BASE, quizRouter);
   APP.use(ROUTES.DIPLOMA.BASE, diplomaRouter);
+  APP.use(ROUTES.PROFILE.BASE, profileRouter);
 
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());

@@ -14,41 +14,42 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
 
-    async registerController(
-      req: Request,
-      res: Response,
-      next: NextFunction,
-    ) {
-      try {
-        const result = await this.authService.register(req.body as RegisterDto);
-        successRes({
-          res,
-          message: 'User registered successfully',
-          status: 201,
-          data: result,
-        });
-      } catch (error) {
-        next(error);
-      }
+  async registerController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const result = await this.authService.register(req.body as RegisterDto);
+      successRes({
+        res,
+        message: 'User registered successfully',
+        status: 201,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 
-    async loginController(
-      req: Request,
-      res: Response,
-      next: NextFunction,
-    ) {
-      try {
-        this.authService.login(req.body);
-        successRes({
-          res,
-          message: 'User logged in successfully',
-          status: 200,
-        });
-      } catch (error) {
-        next(error);
-      }
+  async loginController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const result = await this.authService.login(req.body);
+      successRes({
+        res,
+        message: 'User logged in successfully',
+        status: 200,
+        data: { token: result.token },
+      });
+    } catch (error) {
+      next(error);
     }
-    
+  }
+
   async logoutController(
     req: any,
     res: Response,
