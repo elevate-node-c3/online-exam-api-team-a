@@ -225,9 +225,9 @@
               "raw": "{}"
             },
             "url": {
-              "raw": "{{baseUrl}}/quizzes/{{quizId}}/attempts",
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}/start",
               "host": ["{{baseUrl}}"],
-              "path": ["quizzes", "{{quizId}}", "attempts"]
+              "path": ["quizzes", "{{quizId}}", "start"]
             },
             "description": "Requires an authenticated user. Creates one in-progress attempt and returns sanitized question/option snapshots. Copy `attemptId` from the response into the collection variable before running the detail or submit requests. A user may have only one active attempt at a time."
           }

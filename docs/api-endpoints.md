@@ -339,7 +339,7 @@ All attempt endpoints require an authenticated `user` session. The server uses
 the authenticated user's ID for ownership filtering; callers do not provide a
 `userId`.
 
-### POST `/quizzes/:id/attempts`
+### POST `/quizzes/:id/start`
 
 **Access:** Protected (`user` only)
 **Body**
