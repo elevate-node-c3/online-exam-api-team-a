@@ -1,6 +1,6 @@
-import { DatabaseRepo } from './db.repo.js';
-import { IAttemptAnswers } from '../types/attempt.types.js';
-import { AttemptAnswers } from '../../models/attempt-answer.model.js';
+import { DatabaseRepo } from './db.repo';
+import { IAttemptAnswers } from '../types/attempt.types';
+import { AttemptAnswers } from '../../models/attempt-answer.model';
 
 export class AttemptAnswerRepo extends DatabaseRepo<IAttemptAnswers> {
   constructor() {

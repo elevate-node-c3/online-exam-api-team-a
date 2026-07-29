@@ -1,6 +1,6 @@
-import { DatabaseRepo } from './db.repo.js';
-import { IAttempt } from '../types/attempt.types.js';
-import { Attempt } from '../../models/attempt.model.js';
+import { DatabaseRepo } from './db.repo';
+import { IAttempt } from '../types/attempt.types';
+import { Attempt } from '../../models/attempt.model';
 
 export class AttemptRepo extends DatabaseRepo<IAttempt> {
   constructor() {
