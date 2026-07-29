@@ -49,7 +49,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.findUser(loginDto.email);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('Invalid credentials');
 
     const isPasswordValid = await this.securityService.verify(
       user.password,

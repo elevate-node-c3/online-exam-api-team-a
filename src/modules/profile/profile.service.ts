@@ -15,7 +15,6 @@ export class ProfileService {
         quizzesPassed: 1,
         fastestTime: 1,
         correctAnswers: 1,
-        profilePicture: 1,
       },
       options: { lean: true },
     });
@@ -27,7 +26,6 @@ export class ProfileService {
       quizzesPassed: user.quizzesPassed,
       fastestTime: user.fastestTime,
       correctAnswers: user.correctAnswers,
-      profilePicture: user.photo,
     };
   }
 
@@ -42,7 +40,6 @@ export class ProfileService {
         email: 1,
         role: 1,
         correctAnswers: 1,
-        profilePicture: 1,
       },
       options: { lean: true },
     });
@@ -56,7 +53,6 @@ export class ProfileService {
       email: user.email,
       role: user.role,
       correctAnswers: user.correctAnswers,
-      profilePicture: user.photo,
     };
   }
 
