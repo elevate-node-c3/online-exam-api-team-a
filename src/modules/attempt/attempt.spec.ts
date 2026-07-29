@@ -211,6 +211,7 @@ describe('AttemptService.submitAttempt', () => {
           },
         ],
       },
+      new Date('2026-07-29T10:30:00.000Z'),
     );
 
     expect(result).toMatchObject({
@@ -300,18 +301,23 @@ describe('AttemptService.submitAttempt', () => {
     );
 
     await expect(
-      service.submitAttempt(String(attemptId), String(userId), {
-        answers: [
-          {
-            questionId: String(questionOneId),
-            selectedOptionIds: [String(optionOneId)],
-          },
-          {
-            questionId: String(questionTwoId),
-            selectedOptionIds: [String(optionTwoId)],
-          },
-        ],
-      }),
+      service.submitAttempt(
+        String(attemptId),
+        String(userId),
+        {
+          answers: [
+            {
+              questionId: String(questionOneId),
+              selectedOptionIds: [String(optionOneId)],
+            },
+            {
+              questionId: String(questionTwoId),
+              selectedOptionIds: [String(optionTwoId)],
+            },
+          ],
+        },
+        new Date('2026-07-29T10:30:00.000Z'),
+      ),
     ).rejects.toMatchObject({
       message: expect.stringContaining('no longer available'),
     });
