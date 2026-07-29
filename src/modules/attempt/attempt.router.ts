@@ -13,7 +13,7 @@ import { attemptController } from './attempt.controller';
 
 export const attemptRouter = Router();
 
-attemptRouter.use(auth, checkRole([UserRole.USER]));
+attemptRouter.use(auth, checkRole([UserRole.USER, UserRole.ADMIN]));
 
 attemptRouter.get(
   '/',

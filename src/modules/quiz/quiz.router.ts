@@ -66,7 +66,7 @@ quizRouter.delete(
 quizRouter.post(
   ROUTES.QUIZ.START,
   auth,
-  checkRole([UserRole.USER]),
+  checkRole([UserRole.USER, UserRole.ADMIN]),
   validate({ params: quizIdParamSchema }),
   attemptController.startQuizController.bind(attemptController),
 );
