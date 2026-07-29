@@ -213,6 +213,75 @@
       ]
     },
     {
+      "name": "Attempts",
+      "item": [
+        {
+          "name": "Start Attempt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}/attempts",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}", "attempts"]
+            },
+            "description": "Requires an authenticated user. Creates one in-progress attempt and returns sanitized question/option snapshots. Copy `attemptId` from the response into the collection variable before running the detail or submit requests. A user may have only one active attempt at a time."
+          }
+        },
+        {
+          "name": "List Attempts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attempts?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10", "description": "Maximum 100" }
+              ]
+            },
+            "description": "Requires an authenticated user. Returns only the current user's attempts, newest first, with pagination metadata."
+          }
+        },
+        {
+          "name": "Get Attempt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts", "{{attemptId}}"]
+            },
+            "description": "Requires an authenticated user and an attempt owned by that user. Correct answers are revealed only after submission."
+          }
+        },
+        {
+          "name": "Submit Attempt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"{{questionOneId}}\",\n      \"selectedOptionIds\": [\"{{optionOneId}}\"]\n    },\n    {\n      \"questionId\": \"{{questionTwoId}}\",\n      \"selectedOptionIds\": [\"{{optionTwoId}}\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "Requires an authenticated user. Submit exactly one answer object for every question in the attempt. Option sets are graded exactly (no partial credit); the server calculates score, passed, and time spent. A submitted or expired attempt returns 409."
+          }
+        }
+      ]
+    },
+    {
       "name": "Diploma",
       "item": [
         {
