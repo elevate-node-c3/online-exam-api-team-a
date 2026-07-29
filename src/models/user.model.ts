@@ -14,9 +14,9 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(UserRole),
       default: UserRole.USER,
     },
-    fastestTime: { type: Number },
-    correctAnswers: { type: Number },
-    quizzesPassed: { type: Number },
+    fastestTime: { type: Number, min: 0 },
+    correctAnswers: { type: Number, min: 0, default: 0 },
+    quizzesPassed: { type: Number, min: 0, default: 0 },
     credentialsChangedAt: { type: Date },
   },
   {

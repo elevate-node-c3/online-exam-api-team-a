@@ -68,5 +68,5 @@ quizRouter.post(
   auth,
   checkRole([UserRole.USER]),
   validate({ params: quizIdParamSchema }),
-  attemptController.startAttemptController.bind(attemptController),
+  attemptController.startQuizController.bind(attemptController),
 );

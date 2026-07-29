@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import { UserRole } from '../../common/enums/user.enum.js';
-import { auth } from '../../common/middlewares/auth.middleware.js';
-import { checkRole } from '../../common/middlewares/checkRole.middleware.js';
-import { validate } from '../../common/middlewares/validation.middleware.js';
+import { UserRole } from '../../common/enums/user.enum';
+import { auth } from '../../common/middlewares/auth.middleware';
+import { checkRole } from '../../common/middlewares/checkRole.middleware';
+import { validate } from '../../common/middlewares/validation.middleware';
 import {
   attemptIdParamSchema,
   attemptListQuerySchema,
   submitAttemptSchema,
-} from '../../common/schemas/attempt.schema.js';
-import { ROUTES } from '../../routes.js';
-import { attemptController } from './attempt.controller.js';
+} from '../../common/schemas/attempt.schema';
+import { ROUTES } from '../../routes';
+import { attemptController } from './attempt.controller';
 
 export const attemptRouter = Router();
 
