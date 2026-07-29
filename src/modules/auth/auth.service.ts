@@ -77,7 +77,6 @@ export class AuthService {
         message: 'User registered successfully',
       };
     } catch (error) {
-      console.log('DEBUG create error:', error); // temp
       if (error instanceof Error && 'code' in error && (error as any).code === 11000) {
         throw new ConflictException('User with this email already exists');
       }
