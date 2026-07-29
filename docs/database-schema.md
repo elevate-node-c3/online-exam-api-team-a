@@ -10,16 +10,23 @@
   password: { type: String, required: true },
   photo: String,
   role: { type: String, enum: ["student", "admin"], default: "student" },
-  fastestTime: Number,
-  correctAnswers: Number,
-  quizzesPassed: Number,
+  fastestTime: { type: Number, min: 0 },
+  correctAnswers: { type: Number, min: 0, default: 0 },
+  quizzesPassed: { type: Number, min: 0, default: 0 },
   credentialsChangedAt: Date,
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }
 ```
 
+`fastestTime`, `correctAnswers`, and `quizzesPassed` are denormalized all-time user statistics updated after each successful attempt submission:
+
+- `fastestTime` is the minimum `timeSpentSeconds` across every submitted quiz attempt for that user, whether passed or failed.
+- `correctAnswers` is the cumulative sum of `correctCount` across every submitted attempt.
+- `quizzesPassed` counts every passed attempt, so passing a retake of the same quiz increments it again.
+
 **Indexes**
+
 | Field(s) | Type | Reason |
 |---|---|---|
 | `email` | Unique, single | Enforces uniqueness, speeds up login/register lookup by email |
@@ -69,8 +76,9 @@ No dedicated index needed — collection is small and read via full list (`GET /
 ```
 
 **Indexes**
+
 | Field(s) | Type | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `diplomaId` | Single | Filtering/joining quizzes by diploma |
 | `quizName`, `description` | Text (compound text index) | Supports `GET /quizzes?query=...` search |
 
@@ -100,8 +108,9 @@ No dedicated index needed — collection is small and read via full list (`GET /
 ```
 
 **Indexes**
+
 | Field(s) | Type | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `userId` | Single | `GET /attempts` (list current user's attempts) |
 | `quizId` | Single | Looking up all attempts for a given quiz |
 | `userId + quizId` | Compound | Checking for an existing/in-progress attempt before allowing a new `start`; also the main filter used in dashboard aggregation |

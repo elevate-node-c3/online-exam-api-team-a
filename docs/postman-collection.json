@@ -2,222 +2,625 @@
   "info": {
     "_postman_id": "b6a2f2b0-6e2a-4c9a-9c1a-online-exam-api",
     "name": "Online Exam API",
-    "description": "Collection covering the currently-implemented routes: auth (signup/login/forgot-password flow) and quiz (create/update/list/get). Base URL and a few IDs are collection variables so you can fill them in once and reuse them across requests.\n\nAuth: Login sets an `accessToken` cookie on success, which Postman's cookie jar carries automatically to later requests against the same `baseUrl` — run Login once per session before hitting quiz routes, all of which now require authentication.\n\nRoles: every new user registers as role `user`. Create/Update Quiz require role `admin`, so to exercise those two requests you'll need to manually set a user's `role` to `admin` in the database first (there's no self-serve way to become admin through the API, by design). List/Get Quiz work for either role.\n\nNote on `questions`/`instructions`: these are JSON-stringified inside a text form-data field (multipart can't carry nested arrays natively) — the server parses that string back into an array before validation. `instructions` on Create Quiz is currently omitted below since only `questions` has that parsing wired up so far.",
+    "description": "# Online Exam API\n\nSource-aligned Postman collection for every route currently mounted by the Express application: health, authentication, diplomas, quizzes, and attempts. Each request contains its purpose, authorization and validation contract, and saved response examples.\n\n## Authentication\nProtected routes read a raw JWT directly from the `Authorization` header. Login saves the returned JWT to the `accessToken` collection variable automatically; do **not** add a `Bearer ` prefix. New accounts have role `user`. Admin-only operations require changing a user role to `admin` in the database because the API has no role-escalation endpoint.\n\n## Response envelopes\nMost successful responses use `{ \"statusCode\": number, \"message\": string, \"data\"?: any }`. Validation failures use `{ \"statusCode\": 400, \"message\": \"Validation Error\", \"error\": { \"field.path\": [\"message\"] } }`. Other handled failures use `{ \"statusCode\": number, \"message\": string }`. `/health` is the exception and returns `{ \"status\": \"OK\" }`. Unhandled server failures are normalized to status `502` with a generic message.\n\n## Multipart uploads\nDo not manually set `Content-Type` for form-data requests; Postman must add the multipart boundary. Quiz and diploma photos accept JPEG, PNG, or WebP up to 2 MB. Quiz `questions` is sent as a JSON-stringified text field.\n\n## Saved examples\nObjectIds, timestamps, generated filenames, and result values are illustrative. Actual values depend on the database and request time.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000" },
-    { "key": "email", "value": "student@example.com" },
-    { "key": "otp", "value": "123456" },
-    { "key": "diplomaId", "value": "000000000000000000000000" },
-    { "key": "quizId", "value": "000000000000000000000000" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "API origin without a trailing slash."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "Raw JWT only; do not include the Bearer prefix."
+    },
+    {
+      "key": "email",
+      "value": "student@example.com",
+      "type": "string",
+      "description": "Account email used by auth requests."
+    },
+    {
+      "key": "otp",
+      "value": "123456",
+      "type": "string",
+      "description": "Six-digit code received by email."
+    },
+    {
+      "key": "diplomaId",
+      "value": "507f1f77bcf86cd799439011",
+      "type": "string",
+      "description": "Existing diploma ObjectId."
+    },
+    {
+      "key": "quizId",
+      "value": "507f1f77bcf86cd799439012",
+      "type": "string",
+      "description": "Existing quiz ObjectId."
+    },
+    {
+      "key": "attemptId",
+      "value": "507f1f77bcf86cd799439013",
+      "type": "string",
+      "description": "Attempt ObjectId returned by Start Attempt."
+    },
+    {
+      "key": "questionOneId",
+      "value": "507f1f77bcf86cd799439014",
+      "type": "string",
+      "description": "Question ID returned by Start Attempt."
+    },
+    {
+      "key": "questionTwoId",
+      "value": "507f1f77bcf86cd799439015",
+      "type": "string",
+      "description": "Question ID returned by Start Attempt."
+    },
+    {
+      "key": "optionOneId",
+      "value": "507f1f77bcf86cd799439017",
+      "type": "string",
+      "description": "Selected option ID for the first question, returned by Start Attempt."
+    },
+    {
+      "key": "optionTwoId",
+      "value": "507f1f77bcf86cd799439018",
+      "type": "string",
+      "description": "Selected option ID for the second question, returned by Start Attempt."
+    }
   ],
   "item": [
     {
+      "name": "System",
+      "description": "Public operational endpoint.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "**Purpose:** Confirms that the HTTP application is running. This route is public and does not use the standard API response envelope.\n\n**Request:** No headers, parameters, or body are required.\n\n**Responses:** `200` when the app is reachable."
+          },
+          "response": [
+            {
+              "name": "200 - Application is healthy",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"OK\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Auth",
+      "description": "Account registration, session revocation, and password-recovery operations.",
       "item": [
         {
           "name": "Register",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\",\n  \"confirmPassword\": \"Passw0rd!\"\n}"
+              "raw": "{\n  \"firstName\": \"Janet\",\n  \"lastName\": \"Smith\",\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\",\n  \"confirmPassword\": \"Passw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/signup",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "signup"]
             },
-            "description": "firstName/lastName require min length 2. password/confirmPassword must match. On success, an accessToken cookie is set and the created user + token are returned in the response body."
-          }
+            "description": "**Purpose:** Creates a new account with the default `user` role. Registration does not authenticate the new user and does not return a JWT.\n\n**Request:** JSON only. `firstName` and `lastName` must each contain at least 5 characters. `email` must be valid. `password` must be 8-64 characters and include lowercase, uppercase, number, and special characters. `confirmPassword` must match.\n\n**Responses:** `201` created; `400` validation error; `409` email already exists."
+          },
+          "response": [
+            {
+              "name": "201 - User registered",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 201,\n  \"message\": \"User registered successfully\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"User registered successfully\"\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid registration data",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"firstName\": [\n      \"Too small: expected string to have >=5 characters\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "409 - Email already registered",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"User with this email already exists\"\n}"
+            }
+          ]
         },
         {
           "name": "Login",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\"\n}"
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"Passw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "login"]
             },
-            "description": "Note: this route is a GET with a body in the current implementation. On success, an accessToken cookie is set and the token is also returned in the response body."
-          }
+            "description": "**Purpose:** Authenticates an account at `POST /auth/login` and returns a raw JWT. This replaces the outdated `GET /auth/login` request.\n\n**Request:** JSON with a valid email and a password of at least 8 characters.\n\n**Post-response:** A successful response saves `data.token` to the `accessToken` collection variable for protected requests.\n\n**Responses:** `200` authenticated; `400` request validation error; `401` invalid credentials; `404` user not found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken', body.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 - User authenticated",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"User logged in successfully\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example.signature\"\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid login body",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"password\": [\n      \"Too small: expected string to have >=8 characters\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "**Purpose:** Revokes the current JWT by its JWT ID so it cannot be reused.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Request:** No body.\n\n**Responses:** `200` token revoked; `401` token missing, invalid, expired, already revoked, or invalidated by a password change."
+          },
+          "response": [
+            {
+              "name": "200 - Logged out",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"User logged out successfully\"\n}"
+            },
+            {
+              "name": "401 - Invalid session",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid session. Please login again\"\n}"
+            }
+          ]
         },
         {
           "name": "Send Forgot-Password OTP",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/forgot-password",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "forgot-password"]
             },
-            "description": "Sends a 6-digit OTP to the given email if a matching user exists. The OTP expires in 2 minutes."
-          }
+            "description": "**Purpose:** Sends a six-digit password-reset OTP to a registered email. The OTP expires after 2 minutes. The endpoint intentionally returns the same success response when the email is unknown to avoid account enumeration.\n\n**Request:** JSON containing one valid `email`; unknown fields are rejected.\n\n**Rate limits:** A new code cannot be requested while the current one is valid. A temporarily blocked user receives `429`.\n\n**Responses:** `200` request accepted; `400` validation error; `429` resend/block limit."
+          },
+          "response": [
+            {
+              "name": "200 - Reset code request accepted",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Password reset code sent successfully\"\n}"
+            },
+            {
+              "name": "400 - Invalid email",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"email\": [\n      \"Invalid email address\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "429 - Code requested too soon",
+              "status": "Too Many Requests",
+              "code": 429,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 429,\n  \"message\": \"Please wait 2 minutes before requesting a new code\"\n}"
+            }
+          ]
         },
         {
           "name": "Verify Forgot-Password OTP",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/forgot-password/verify-otp",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "forgot-password", "verify-otp"]
             },
-            "description": "otp must be exactly 6 digits."
-          }
+            "description": "**Purpose:** Verifies the active password-reset OTP. A valid verification marker remains usable for password reset for 10 minutes. Unknown emails intentionally receive the same `200` response to reduce account enumeration.\n\n**Request:** JSON with a valid `email` and an `otp` containing exactly six digits.\n\n**Attempt policy:** Wrong codes return `401`. On the fifth failed attempt, the OTP is deleted and verification is blocked for 7 minutes.\n\n**Responses:** `200` verified/unknown email; `400` validation error; `401` wrong code; `404` missing or expired code; `409` already verified; `429` blocked."
+          },
+          "response": [
+            {
+              "name": "200 - OTP verified",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"OTP verified\"\n}"
+            },
+            {
+              "name": "400 - OTP format is invalid",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"otp\": [\n      \"OTP must be a 6-digit code\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - OTP is incorrect",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid verification code. Only 3 attempts left\"\n}"
+            },
+            {
+              "name": "404 - OTP missing or expired",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"No OTP found or code has expired\"\n}"
+            },
+            {
+              "name": "409 - OTP already verified",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"OTP has already been verified\"\n}"
+            },
+            {
+              "name": "429 - Too many failed attempts",
+              "status": "Too Many Requests",
+              "code": 429,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 429,\n  \"message\": \"Too many failed attempts. Please request a new code\"\n}"
+            }
+          ]
         },
         {
           "name": "Reset Password",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"newPassword\": \"NewPassw0rd!\",\n  \"confirmPassword\": \"NewPassw0rd!\"\n}"
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"newPassword\": \"NewPassw0rd!\",\n  \"confirmPassword\": \"NewPassw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/reset-password",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "reset-password"]
             },
-            "description": "Requires the OTP to have been verified first. newPassword must be 8+ chars with at least one uppercase letter, one number, and one symbol, and must match confirmPassword."
-          }
-        }
-      ]
-    },
-    {
-      "name": "Quiz",
-      "item": [
-        {
-          "name": "Create Quiz",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "quizName", "value": "Intro to Networking Final", "type": "text" },
-                { "key": "description", "value": "Covers OSI layers, IP addressing, and routing basics.", "type": "text" },
-                { "key": "time", "value": "60", "type": "text" },
-                { "key": "passingThreshold", "value": "70", "type": "text" },
-                { "key": "diplomaId", "value": "{{diplomaId}}", "type": "text" },
+            "description": "**Purpose:** Replaces the password after successful OTP verification, archives the previous password hash, invalidates older JWTs, and consumes the OTP so it cannot be reused.\n\n**Request:** JSON with `email`, `newPassword`, and matching `confirmPassword`. The new password must be at least 8 characters and contain an uppercase letter, number, and symbol.\n\n**Responses:** `200` reset; `400` validation error; `403` OTP exists but was not verified; `404` user or OTP not found/expired."
+          },
+          "response": [
+            {
+              "name": "200 - Password reset",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
                 {
-                  "key": "questions",
-                  "value": "[{\"text\":\"Which layer handles routing?\",\"type\":\"radio\",\"options\":[{\"text\":\"Physical\"},{\"text\":\"Network\"},{\"text\":\"Session\"}],\"correctOptionIndex\":[1]},{\"text\":\"Which of these are private IP ranges?\",\"type\":\"check\",\"options\":[{\"text\":\"10.0.0.0/8\"},{\"text\":\"8.8.8.8\"},{\"text\":\"192.168.0.0/16\"}],\"correctOptionIndex\":[0,2]}]",
-                  "type": "text"
-                },
-                { "key": "quizPhoto", "type": "file", "src": [] }
-              ]
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Password reset successfully\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/quizzes",
-              "host": ["{{baseUrl}}"],
-              "path": ["quizzes"]
+            {
+              "name": "400 - Password confirmation does not match",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"confirmPassword\": [\n      \"Passwords do not match\"\n    ]\n  }\n}"
             },
-            "description": "Requires an admin session (log in as a user with role=admin first). time: 30-120. passingThreshold: 20-100 (optional, defaults server-side if omitted). questions: 1-10 items, JSON-stringified (see collection-level note); each question needs 1+ options and 1+ correctOptionIndex; a 'radio' question must have exactly 1 correct index. quizPhoto is required."
-          }
-        },
-        {
-          "name": "Update Quiz",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "quizName", "value": "Intro to Networking Final (v2)", "type": "text" },
-                { "key": "passingThreshold", "value": "75", "type": "text" },
-                { "key": "quizPhoto", "type": "file", "src": [] }
-              ]
+            {
+              "name": "403 - OTP not verified",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"OTP has not been verified yet\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["quizzes", "{{quizId}}"]
-            },
-            "description": "Requires an admin session (log in as a user with role=admin first). All fields are optional (partial update) — only send the ones you want to change. quizPhoto is optional here, unlike on create."
-          }
-        },
-        {
-          "name": "List Quizzes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/quizzes?query=&page=1&size=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["quizzes"],
-              "query": [
-                { "key": "query", "value": "", "description": "Optional text search against quizName/description" },
-                { "key": "page", "value": "1" },
-                { "key": "size", "value": "10" }
-              ]
-            },
-            "description": "Requires any authenticated user (user or admin). page/size are optional — omit both to get all matching quizzes without pagination metadata."
-          }
-        },
-        {
-          "name": "Get Quiz",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["quizzes", "{{quizId}}"]
-            },
-            "description": "Requires any authenticated user (user or admin). 404s if the quiz doesn't exist."
-          }
-        },
-        {
-          "name": "Delete Quiz",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["quizzes", "{{quizId}}"]
-            },
-            "description": "Requires an admin session (log in as a user with role=admin first). 404s if the quiz doesn't exist."
-          }
+            {
+              "name": "404 - OTP missing or expired",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"No OTP found or code has expired\"\n}"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Diploma",
+      "name": "Diplomas",
+      "description": "Diploma/track catalog. Admins create; users and admins list.",
       "item": [
         {
           "name": "Create Diploma",
           "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -226,17 +629,21 @@
                 {
                   "key": "diplomaName",
                   "value": "Frontend Development",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Required non-blank name; surrounding whitespace is trimmed."
                 },
                 {
                   "key": "diplomaDescription",
                   "value": "Covers modern frontend development fundamentals.",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Required non-blank description; surrounding whitespace is trimmed."
                 },
                 {
                   "key": "diplomaPhoto",
                   "type": "file",
-                  "src": []
+                  "src": [],
+                  "description": "Optional JPEG, PNG, or WebP file, maximum 2 MB.",
+                  "disabled": true
                 }
               ]
             },
@@ -245,12 +652,132 @@
               "host": ["{{baseUrl}}"],
               "path": ["diplomas"]
             },
-            "description": "Requires an authenticated admin. diplomaPhoto is optional and accepts JPEG, PNG, or WebP files up to 2 MB."
-          }
+            "description": "**Purpose:** Creates a diploma/learning track that quizzes can reference.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `admin` only.\n\n**Request:** `multipart/form-data`; let Postman set the boundary. Name and description are required, trimmed, and cannot be blank. The disabled photo row is optional; enable it to upload JPEG, PNG, or WebP up to 2 MB. Unknown text fields are rejected.\n\n**Post-response:** A successful response saves `data.diplomaId` to the `diplomaId` collection variable.\n\n**Response photo:** Public path under `/uploads/diploma-photos`, URL-encoded when necessary, or `null`.\n\n**Responses:** `201` created; `400` invalid body/file type; `401` invalid token; `403` non-admin; `413` file over 2 MB."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('diplomaId', body.data.diplomaId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "201 - Diploma created without a photo",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 201,\n  \"message\": \"Diploma created successfully\",\n  \"data\": {\n    \"diplomaId\": \"507f1f77bcf86cd799439011\",\n    \"diplomaName\": \"Frontend Development\",\n    \"diplomaDescription\": \"Covers modern frontend development fundamentals.\",\n    \"photo\": null\n  }\n}"
+            },
+            {
+              "name": "400 - Required text is blank",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"diplomaName\": [\n      \"Diploma name is required\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "400 - Unsupported photo type",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"File type is not allowed\"\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Admin role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "413 - Photo is too large",
+              "status": "Payload Too Large",
+              "code": 413,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 413,\n  \"message\": \"Uploaded file is too large\"\n}"
+            }
+          ]
         },
         {
           "name": "List Diplomas",
           "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
@@ -258,8 +785,1244 @@
               "host": ["{{baseUrl}}"],
               "path": ["diplomas"]
             },
-            "description": "Requires any authenticated user. Photo values are public paths under /uploads/diploma-photos, or null when no photo was uploaded."
-          }
+            "description": "**Purpose:** Returns every diploma/learning track. This endpoint currently has no filtering or pagination.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Request:** No parameters or body.\n\n**Response photo:** A public path under `/uploads/diploma-photos` or `null`; prepend `baseUrl` to fetch the file.\n\n**Responses:** `200` list (possibly empty); `401` invalid token; `403` unsupported role."
+          },
+          "response": [
+            {
+              "name": "200 - Diploma list",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Diplomas fetched successfully\",\n  \"data\": [\n    {\n      \"diplomaId\": \"507f1f77bcf86cd799439011\",\n      \"diplomaName\": \"Frontend Development\",\n      \"diplomaDescription\": \"Covers modern frontend development fundamentals.\",\n      \"photo\": \"/uploads/diploma-photos/frontend.png\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Supported role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Quizzes",
+      "description": "Quiz administration and authenticated catalog access.",
+      "item": [
+        {
+          "name": "Create Quiz",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "quizName",
+                  "value": "Intro to Networking Final",
+                  "type": "text",
+                  "description": "Required; minimum 3 characters."
+                },
+                {
+                  "key": "description",
+                  "value": "Covers OSI layers, IP addressing, and routing basics.",
+                  "type": "text",
+                  "description": "Required; may be an empty string."
+                },
+                {
+                  "key": "time",
+                  "value": "60",
+                  "type": "text",
+                  "description": "Required duration in minutes; 30-120."
+                },
+                {
+                  "key": "passingThreshold",
+                  "value": "70",
+                  "type": "text",
+                  "description": "Optional percentage; 20-100; defaults to 80."
+                },
+                {
+                  "key": "diplomaId",
+                  "value": "{{diplomaId}}",
+                  "type": "text",
+                  "description": "Required MongoDB ObjectId for an existing diploma."
+                },
+                {
+                  "key": "questions",
+                  "value": "[{\"text\":\"Which layer handles routing?\",\"type\":\"radio\",\"options\":[{\"text\":\"Physical\"},{\"text\":\"Network\"}],\"correctOptionIndex\":[1]},{\"text\":\"Which of these are private IP ranges?\",\"type\":\"check\",\"options\":[{\"text\":\"10.0.0.0/8\"},{\"text\":\"8.8.8.8\"}],\"correctOptionIndex\":[0]}]",
+                  "type": "text",
+                  "description": "Required JSON-stringified array of 1-10 questions."
+                },
+                {
+                  "key": "quizPhoto",
+                  "type": "file",
+                  "src": [],
+                  "description": "Required JPEG, PNG, or WebP file, maximum 2 MB."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"]
+            },
+            "description": "**Purpose:** Creates a quiz under an existing diploma and stores its uploaded cover image.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `admin` only.\n\n**Request:** `multipart/form-data`; let Postman generate the boundary. `quizPhoto` is required. `questions` is a JSON-stringified array with 1-10 items. Each question has text (minimum 3 characters), type `radio` or `check`, at least one option whose text is at least 3 characters, and one or more zero-based `correctOptionIndex` values. Indexes must exist; `radio` permits exactly one correct index. `time` is a duration in minutes and must be 30-120. `passingThreshold` defaults to 80. The schema also defines optional `instructions: string[]`; multipart clients must send repeated fields to produce an array, but the current quiz model does not persist this correctly because its stored field is misspelled.\n\n**Post-response:** A successful response saves `data._id` to the `quizId` collection variable.\n\n**Responses:** `201` created; `400` invalid fields/file; `401` invalid token; `403` non-admin; `404` diploma missing; `409` duplicate quiz name; `413` file over 2 MB."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('quizId', body.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "201 - Quiz created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 201,\n  \"message\": \"Quiz created successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"quizName\": \"Intro to Networking Final\",\n    \"description\": \"Covers OSI layers, IP addressing, and routing basics.\",\n    \"photo\": \"28c47f2f-3d62-4cb4-8bc8-13dd30e75aea__networking.png\",\n    \"time\": 60,\n    \"passingThreshold\": 70,\n    \"diplomaId\": \"507f1f77bcf86cd799439011\",\n    \"questions\": [\n      {\n        \"text\": \"Which layer handles routing?\",\n        \"type\": \"radio\",\n        \"options\": [\n          {\n            \"text\": \"Physical\",\n            \"_id\": \"507f1f77bcf86cd799439016\"\n          },\n          {\n            \"text\": \"Network\",\n            \"_id\": \"507f1f77bcf86cd799439017\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          1\n        ],\n        \"_id\": \"507f1f77bcf86cd799439014\"\n      },\n      {\n        \"text\": \"Which of these are private IP ranges?\",\n        \"type\": \"check\",\n        \"options\": [\n          {\n            \"text\": \"10.0.0.0/8\",\n            \"_id\": \"507f1f77bcf86cd799439018\"\n          },\n          {\n            \"text\": \"8.8.8.8\",\n            \"_id\": \"507f1f77bcf86cd799439019\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          0\n        ],\n        \"_id\": \"507f1f77bcf86cd799439015\"\n      }\n    ],\n    \"createdAt\": \"2026-07-29T12:00:00.000Z\",\n    \"updatedAt\": \"2026-07-29T12:00:00.000Z\",\n    \"__v\": 0\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid questions",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"questions.0.correctOptionIndex\": [\n      \"correctOptionIndex 9 is out of range for question 0\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Admin role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Diploma not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"diploma not found\"\n}"
+            },
+            {
+              "name": "409 - Quiz name already exists",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"A quiz with this name already exists\"\n}"
+            },
+            {
+              "name": "413 - Photo is too large",
+              "status": "Payload Too Large",
+              "code": 413,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 413,\n  \"message\": \"Uploaded file is too large\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Quiz",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "quizName",
+                  "value": "Intro to Networking Final (v2)",
+                  "type": "text",
+                  "description": "Optional; minimum 3 characters."
+                },
+                {
+                  "key": "passingThreshold",
+                  "value": "75",
+                  "type": "text",
+                  "description": "Optional percentage; 20-100."
+                },
+                {
+                  "key": "quizPhoto",
+                  "type": "file",
+                  "src": [],
+                  "description": "Optional replacement JPEG, PNG, or WebP, maximum 2 MB.",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}"]
+            },
+            "description": "**Purpose:** Partially updates a quiz and optionally replaces its photo.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `admin` only.\n\n**Path:** `quizId` must be a valid MongoDB ObjectId.\n\n**Request:** `multipart/form-data`; all create fields are optional and retain the same constraints. Only send fields to change. The example photo row is disabled; enable it to replace the image. If `questions` is sent, it must still be a JSON-stringified complete array.\n\n**Responses:** `200` updated; `400` invalid ID/body/file; `401` invalid token; `403` non-admin; `404` quiz or replacement diploma missing; `409` duplicate quiz name; `413` file over 2 MB."
+          },
+          "response": [
+            {
+              "name": "200 - Quiz updated",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Quiz updated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"quizName\": \"Intro to Networking Final (v2)\",\n    \"description\": \"Covers OSI layers, IP addressing, and routing basics.\",\n    \"photo\": \"28c47f2f-3d62-4cb4-8bc8-13dd30e75aea__networking.png\",\n    \"time\": 60,\n    \"passingThreshold\": 75,\n    \"diplomaId\": \"507f1f77bcf86cd799439011\",\n    \"questions\": [\n      {\n        \"text\": \"Which layer handles routing?\",\n        \"type\": \"radio\",\n        \"options\": [\n          {\n            \"text\": \"Physical\",\n            \"_id\": \"507f1f77bcf86cd799439016\"\n          },\n          {\n            \"text\": \"Network\",\n            \"_id\": \"507f1f77bcf86cd799439017\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          1\n        ],\n        \"_id\": \"507f1f77bcf86cd799439014\"\n      },\n      {\n        \"text\": \"Which of these are private IP ranges?\",\n        \"type\": \"check\",\n        \"options\": [\n          {\n            \"text\": \"10.0.0.0/8\",\n            \"_id\": \"507f1f77bcf86cd799439018\"\n          },\n          {\n            \"text\": \"8.8.8.8\",\n            \"_id\": \"507f1f77bcf86cd799439019\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          0\n        ],\n        \"_id\": \"507f1f77bcf86cd799439015\"\n      }\n    ],\n    \"createdAt\": \"2026-07-29T12:00:00.000Z\",\n    \"updatedAt\": \"2026-07-29T12:30:00.000Z\",\n    \"__v\": 0\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid quiz ID",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"id\": [\n      \"Invalid ObjectId\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Admin role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Quiz not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"quiz not found\"\n}"
+            },
+            {
+              "name": "409 - Quiz name already exists",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"A quiz with this name already exists\"\n}"
+            },
+            {
+              "name": "413 - Photo is too large",
+              "status": "Payload Too Large",
+              "code": 413,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 413,\n  \"message\": \"Uploaded file is too large\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Quizzes",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes?query=&page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "",
+                  "description": "Optional MongoDB text search over quizName and description."
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Optional page number, minimum 1. Pagination activates when provided."
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Optional page size, 1-100. Use with page."
+                }
+              ]
+            },
+            "description": "**Purpose:** Returns quizzes, optionally filtered with text search and paginated.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Query:** `query` is optional. `page` is >=1 and `size` is 1-100. When `page` is omitted, all matches are returned and `meta` is empty. Supplying `page` without `size` currently produces unreliable pagination, so provide both as in this example.\n\n**Responses:** `200` list; `400` invalid query; `401` invalid token; `403` unsupported role."
+          },
+          "response": [
+            {
+              "name": "200 - Paginated quiz list",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Quizzes fetched successfully\",\n  \"data\": {\n    \"docs\": [\n      {\n        \"_id\": \"507f1f77bcf86cd799439012\",\n        \"quizName\": \"Intro to Networking Final\",\n        \"description\": \"Covers OSI layers, IP addressing, and routing basics.\",\n        \"photo\": \"28c47f2f-3d62-4cb4-8bc8-13dd30e75aea__networking.png\",\n        \"time\": 60,\n        \"passingThreshold\": 70,\n        \"diplomaId\": \"507f1f77bcf86cd799439011\",\n        \"questions\": [\n          {\n            \"text\": \"Which layer handles routing?\",\n            \"type\": \"radio\",\n            \"options\": [\n              {\n                \"text\": \"Physical\",\n                \"_id\": \"507f1f77bcf86cd799439016\"\n              },\n              {\n                \"text\": \"Network\",\n                \"_id\": \"507f1f77bcf86cd799439017\"\n              }\n            ],\n            \"correctOptionIndex\": [\n              1\n            ],\n            \"_id\": \"507f1f77bcf86cd799439014\"\n          },\n          {\n            \"text\": \"Which of these are private IP ranges?\",\n            \"type\": \"check\",\n            \"options\": [\n              {\n                \"text\": \"10.0.0.0/8\",\n                \"_id\": \"507f1f77bcf86cd799439018\"\n              },\n              {\n                \"text\": \"8.8.8.8\",\n                \"_id\": \"507f1f77bcf86cd799439019\"\n              }\n            ],\n            \"correctOptionIndex\": [\n              0\n            ],\n            \"_id\": \"507f1f77bcf86cd799439015\"\n          }\n        ],\n        \"createdAt\": \"2026-07-29T12:00:00.000Z\",\n        \"updatedAt\": \"2026-07-29T12:00:00.000Z\",\n        \"__v\": 0\n      }\n    ],\n    \"meta\": {\n      \"count\": 1,\n      \"page\": 1,\n      \"size\": 10,\n      \"pages\": 1\n    }\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid page size",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"size\": [\n      \"Too big: expected number to be <=100\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Supported role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Quiz",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}"]
+            },
+            "description": "**Purpose:** Retrieves one quiz by ID, including its answer indexes. Use the sanitized question snapshots returned by Start Attempt for exam delivery instead of exposing this admin-oriented answer data to a quiz-taking UI.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Path:** `quizId` must be a valid MongoDB ObjectId.\n\n**Responses:** `200` quiz; `400` malformed ID; `401` invalid token; `403` unsupported role; `404` quiz missing."
+          },
+          "response": [
+            {
+              "name": "200 - Quiz retrieved",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Quiz fetched successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"quizName\": \"Intro to Networking Final\",\n    \"description\": \"Covers OSI layers, IP addressing, and routing basics.\",\n    \"photo\": \"28c47f2f-3d62-4cb4-8bc8-13dd30e75aea__networking.png\",\n    \"time\": 60,\n    \"passingThreshold\": 70,\n    \"diplomaId\": \"507f1f77bcf86cd799439011\",\n    \"questions\": [\n      {\n        \"text\": \"Which layer handles routing?\",\n        \"type\": \"radio\",\n        \"options\": [\n          {\n            \"text\": \"Physical\",\n            \"_id\": \"507f1f77bcf86cd799439016\"\n          },\n          {\n            \"text\": \"Network\",\n            \"_id\": \"507f1f77bcf86cd799439017\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          1\n        ],\n        \"_id\": \"507f1f77bcf86cd799439014\"\n      },\n      {\n        \"text\": \"Which of these are private IP ranges?\",\n        \"type\": \"check\",\n        \"options\": [\n          {\n            \"text\": \"10.0.0.0/8\",\n            \"_id\": \"507f1f77bcf86cd799439018\"\n          },\n          {\n            \"text\": \"8.8.8.8\",\n            \"_id\": \"507f1f77bcf86cd799439019\"\n          }\n        ],\n        \"correctOptionIndex\": [\n          0\n        ],\n        \"_id\": \"507f1f77bcf86cd799439015\"\n      }\n    ],\n    \"createdAt\": \"2026-07-29T12:00:00.000Z\",\n    \"updatedAt\": \"2026-07-29T12:00:00.000Z\",\n    \"__v\": 0\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid quiz ID",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"id\": [\n      \"Invalid ObjectId\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Supported role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Quiz not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"quiz not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Quiz",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}"]
+            },
+            "description": "**Purpose:** Permanently deletes a quiz document. The current implementation does not remove the stored quiz photo or cascade-delete historical attempts.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `admin` only.\n\n**Path:** `quizId` must be a valid MongoDB ObjectId.\n\n**Request:** No body.\n\n**Responses:** `200` deleted; `400` malformed ID; `401` invalid token; `403` non-admin; `404` quiz missing."
+          },
+          "response": [
+            {
+              "name": "200 - Quiz deleted",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Quiz deleted successfully\"\n}"
+            },
+            {
+              "name": "400 - Invalid quiz ID",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"id\": [\n      \"Invalid ObjectId\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Admin role required",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Quiz not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"quiz not found\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Attempts",
+      "description": "Authenticated timed quiz attempts and exact-set grading.",
+      "item": [
+        {
+          "name": "Start Attempt",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quizzes/{{quizId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["quizzes", "{{quizId}}", "start"]
+            },
+            "description": "**Purpose:** Starts a timed attempt and snapshots the quiz so later quiz edits do not change grading. Correct answers are removed from the response. The quiz duration is converted from minutes to seconds for the attempt timer.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Path:** `quizId` must be a valid MongoDB ObjectId.\n\n**Request:** No body is required. A caller can have only one `in_progress` attempt across all quizzes; overdue attempts are first marked `expired`.\n\n**Post-response:** A successful response saves the attempt ID plus the first two question IDs and first option IDs to collection variables. Review the selected option variables before submitting.\n\n**Responses:** `201` started; `400` malformed quiz ID or invalid/empty quiz questions; `401` invalid token; `403` unsupported role; `404` quiz missing; `409` active attempt exists."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.collectionVariables.set('attemptId', data.attemptId);",
+                  "  if (data.questions[0]) {",
+                  "    pm.collectionVariables.set('questionOneId', data.questions[0].questionId);",
+                  "    pm.collectionVariables.set('optionOneId', data.questions[0].options[0].optionId);",
+                  "  }",
+                  "  if (data.questions[1]) {",
+                  "    pm.collectionVariables.set('questionTwoId', data.questions[1].questionId);",
+                  "    pm.collectionVariables.set('optionTwoId', data.questions[1].options[0].optionId);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "201 - Attempt started",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 201,\n  \"message\": \"Attempt started\",\n  \"data\": {\n    \"attemptId\": \"507f1f77bcf86cd799439013\",\n    \"quizId\": \"507f1f77bcf86cd799439012\",\n    \"status\": \"in_progress\",\n    \"startedAt\": \"2026-07-29T13:00:00.000Z\",\n    \"expiresAt\": \"2026-07-29T14:00:00.000Z\",\n    \"timeLimitSeconds\": 3600,\n    \"questions\": [\n      {\n        \"questionId\": \"507f1f77bcf86cd799439014\",\n        \"text\": \"Which layer handles routing?\",\n        \"type\": \"radio\",\n        \"options\": [\n          {\n            \"optionId\": \"507f1f77bcf86cd799439016\",\n            \"text\": \"Physical\"\n          },\n          {\n            \"optionId\": \"507f1f77bcf86cd799439017\",\n            \"text\": \"Network\"\n          }\n        ],\n        \"selectedOptionIds\": []\n      },\n      {\n        \"questionId\": \"507f1f77bcf86cd799439015\",\n        \"text\": \"Which of these are private IP ranges?\",\n        \"type\": \"check\",\n        \"options\": [\n          {\n            \"optionId\": \"507f1f77bcf86cd799439018\",\n            \"text\": \"10.0.0.0/8\"\n          },\n          {\n            \"optionId\": \"507f1f77bcf86cd799439019\",\n            \"text\": \"8.8.8.8\"\n          }\n        ],\n        \"selectedOptionIds\": []\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid quiz ID",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"id\": [\n      \"Invalid ObjectId\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Unsupported role",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Quiz not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Quiz not found\"\n}"
+            },
+            {
+              "name": "409 - Another attempt is active",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"Finish the active attempt before starting another\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Attempts",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attempts?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number; integer >=1; defaults to 1."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Page size; integer 1-100; defaults to 10."
+                }
+              ]
+            },
+            "description": "**Purpose:** Lists only the authenticated caller's attempts, newest first. Overdue in-progress attempts are marked expired before the query runs.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Query:** `page` defaults to 1 and `limit` defaults to 10; both must be integers and `limit` cannot exceed 100.\n\n**Response fields:** Scores, pass flags, and submission dates are `null` for unfinished attempts.\n\n**Responses:** `200` list; `400` invalid query; `401` invalid token; `403` unsupported role."
+          },
+          "response": [
+            {
+              "name": "200 - Attempt history",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Attempts retrieved\",\n  \"data\": {\n    \"attempts\": [\n      {\n        \"attemptId\": \"507f1f77bcf86cd799439013\",\n        \"quizId\": \"507f1f77bcf86cd799439012\",\n        \"status\": \"submitted\",\n        \"scorePercentage\": 100,\n        \"passed\": true,\n        \"submittedAt\": \"2026-07-29T13:00:45.000Z\"\n      }\n    ],\n    \"meta\": {\n      \"count\": 1,\n      \"page\": 1,\n      \"size\": 10,\n      \"pages\": 1\n    }\n  }\n}"
+            },
+            {
+              "name": "400 - Limit exceeds maximum",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"limit\": [\n      \"Too big: expected number to be <=100\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Unsupported role",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Attempt",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts", "{{attemptId}}"]
+            },
+            "description": "**Purpose:** Retrieves an attempt owned by the authenticated caller. It never exposes another user's attempt. Overdue attempts are marked expired before retrieval.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Path:** `attemptId` must be a valid MongoDB ObjectId.\n\n**Answer visibility:** `correctOptionIds` and `isCorrect` are included only when status is `submitted`; they remain hidden for `in_progress` and `expired` attempts. Nullable result fields remain `null` until submission.\n\n**Responses:** `200` detail; `400` malformed ID; `401` invalid token; `403` unsupported role; `404` missing/not-owned attempt or missing snapshot."
+          },
+          "response": [
+            {
+              "name": "200 - Submitted attempt with answers revealed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Attempt retrieved\",\n  \"data\": {\n    \"attemptId\": \"507f1f77bcf86cd799439013\",\n    \"quizId\": \"507f1f77bcf86cd799439012\",\n    \"status\": \"submitted\",\n    \"scorePercentage\": 100,\n    \"passed\": true,\n    \"correctCount\": 2,\n    \"totalQuestions\": 2,\n    \"startedAt\": \"2026-07-29T13:00:00.000Z\",\n    \"expiresAt\": \"2026-07-29T14:00:00.000Z\",\n    \"submittedAt\": \"2026-07-29T13:00:45.000Z\",\n    \"timeSpentSeconds\": 45,\n    \"questions\": [\n      {\n        \"questionId\": \"507f1f77bcf86cd799439014\",\n        \"text\": \"Which layer handles routing?\",\n        \"type\": \"radio\",\n        \"options\": [\n          {\n            \"optionId\": \"507f1f77bcf86cd799439016\",\n            \"text\": \"Physical\"\n          },\n          {\n            \"optionId\": \"507f1f77bcf86cd799439017\",\n            \"text\": \"Network\"\n          }\n        ],\n        \"selectedOptionIds\": [\n          \"507f1f77bcf86cd799439017\"\n        ],\n        \"correctOptionIds\": [\n          \"507f1f77bcf86cd799439017\"\n        ],\n        \"isCorrect\": true\n      },\n      {\n        \"questionId\": \"507f1f77bcf86cd799439015\",\n        \"text\": \"Which of these are private IP ranges?\",\n        \"type\": \"check\",\n        \"options\": [\n          {\n            \"optionId\": \"507f1f77bcf86cd799439018\",\n            \"text\": \"10.0.0.0/8\"\n          },\n          {\n            \"optionId\": \"507f1f77bcf86cd799439019\",\n            \"text\": \"8.8.8.8\"\n          }\n        ],\n        \"selectedOptionIds\": [\n          \"507f1f77bcf86cd799439018\"\n        ],\n        \"correctOptionIds\": [\n          \"507f1f77bcf86cd799439018\"\n        ],\n        \"isCorrect\": true\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "400 - Invalid attempt ID",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Validation Error\",\n  \"error\": {\n    \"id\": [\n      \"Invalid ObjectId\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Unsupported role",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Attempt not found or not owned",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Attempt not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Attempt",
+          "request": {
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"{{questionOneId}}\",\n      \"selectedOptionIds\": [\n        \"{{optionOneId}}\"\n      ]\n    },\n    {\n      \"questionId\": \"{{questionTwoId}}\",\n      \"selectedOptionIds\": [\n        \"{{optionTwoId}}\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "**Purpose:** Finalizes and grades an in-progress attempt, stores selected answers, and updates user statistics.\n\n**Authentication:** Required. The server expects the raw JWT in the `Authorization` header. Do not prepend `Bearer `. This request uses the `accessToken` collection variable.\n\n**Role:** `user` or `admin`.\n\n**Path:** `attemptId` must be a valid MongoDB ObjectId and owned by the caller.\n\n**Request:** JSON with exactly one answer for every snapshotted question. IDs must be valid ObjectIds; question IDs cannot repeat; each `selectedOptionIds` array must be non-empty and contain unique options belonging to that question. Grading compares exact option sets, so checkbox answers receive no partial credit. Score is rounded to two decimals. Server-measured time is capped at the attempt time limit.\n\n**Responses:** `200` graded; `400` malformed IDs/body, incomplete answers, or invalid option; `401` invalid token; `403` unsupported role; `404` missing/not-owned attempt or snapshot; `409` submitted, expired, or concurrently finalized attempt."
+          },
+          "response": [
+            {
+              "name": "200 - Attempt submitted and graded",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Attempt submitted\",\n  \"data\": {\n    \"attemptId\": \"507f1f77bcf86cd799439013\",\n    \"status\": \"submitted\",\n    \"scorePercentage\": 100,\n    \"passed\": true,\n    \"correctCount\": 2,\n    \"totalQuestions\": 2,\n    \"timeSpentSeconds\": 45,\n    \"submittedAt\": \"2026-07-29T13:00:45.000Z\"\n  }\n}"
+            },
+            {
+              "name": "400 - Not every question was answered",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Every attempt question must be answered\"\n}"
+            },
+            {
+              "name": "400 - Invalid option for question",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"An answer contains an invalid option ID\"\n}"
+            },
+            {
+              "name": "401 - Invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 401,\n  \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "403 - Unsupported role",
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 403,\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            },
+            {
+              "name": "404 - Attempt not found or not owned",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Attempt not found\"\n}"
+            },
+            {
+              "name": "409 - Attempt already submitted",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"Attempt has already been submitted\"\n}"
+            },
+            {
+              "name": "409 - Attempt expired",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 409,\n  \"message\": \"Attempt has expired\"\n}"
+            }
+          ]
         }
       ]
     }
