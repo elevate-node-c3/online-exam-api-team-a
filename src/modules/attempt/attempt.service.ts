@@ -21,8 +21,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '../../common/utils/exception.util';
-
-const MINUTES_TO_SECONDS = 60;
+import { QUIZ_PASSING_DEFAULT_THRESHOLD } from '../../common/constants/quiz.constant';
 
 const asId = (value: Types.ObjectId | undefined, field: string) => {
   if (!value) throw new BadRequestException(`Quiz ${field} is invalid`);
@@ -106,8 +105,9 @@ export class AttemptService {
     if (!questions.length)
       throw new BadRequestException('Quiz has no questions');
 
-    const timeLimitSeconds = (quiz.time ?? 0) * MINUTES_TO_SECONDS;
-    const passingThreshold = quiz.passingThreshold ?? 80;
+    const timeLimitSeconds = quiz.time ?? 0;
+    const passingThreshold =
+      quiz.passingThreshold ?? QUIZ_PASSING_DEFAULT_THRESHOLD;
     const expiresAt = new Date(now.getTime() + timeLimitSeconds * 1000);
     let attempt;
 

@@ -48,6 +48,7 @@ const attemptSchema = new Schema<IAttempt>(
   },
 );
 
+attemptSchema.index({ userId: 1, createdAt: -1 });
 attemptSchema.index({ userId: 1, submittedAt: -1 });
 attemptSchema.index({ userId: 1, status: 1, createdAt: -1 });
 attemptSchema.index({ quizId: 1, createdAt: -1 });
