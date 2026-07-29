@@ -21,10 +21,10 @@ export const ROUTES = {
   DIPLOMA: {
     BASE: '/diplomas',
   },
-  PROFILE:{
+  PROFILE: {
     BASE: '/profile',
     GETPROFILE: '/get-profile',
     UPDATEPROFILE: '/update-profile/',
     GETPROFILEBYID: '/get-profile/:id',
-  }
+  },
 };

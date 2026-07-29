@@ -9,16 +9,10 @@ import {
 import { RegisterDto } from '../../modules/auth/dto/register.dto';
 import { successRes } from '../../common/utils/response.util';
 
-
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-
-  async registerController(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async registerController(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.authService.register(req.body as RegisterDto);
       successRes({
@@ -32,11 +26,7 @@ export class AuthController {
     }
   }
 
-  async loginController(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async loginController(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.authService.login(req.body);
       successRes({
@@ -50,11 +40,7 @@ export class AuthController {
     }
   }
 
-  async logoutController(
-    req: any,
-    res: Response,
-    next: NextFunction,
-  ) {
+  async logoutController(req: any, res: Response, next: NextFunction) {
     try {
       const result = await this.authService.logout({
         jti: req.credentials.jti,

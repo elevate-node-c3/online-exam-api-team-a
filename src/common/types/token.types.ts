@@ -1,6 +1,6 @@
 import { Document, Types } from 'mongoose';
 
 export interface IToken extends Document {
-    userId: Types.ObjectId
-    jwtid: string     
+  userId: Types.ObjectId;
+  jwtid: string;
 }

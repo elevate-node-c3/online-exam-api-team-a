@@ -59,7 +59,6 @@ describe('QuizController', () => {
         expect.objectContaining({ statusCode: 201, data: createdQuiz }),
       );
     });
-
   });
 
   describe('updateQuizController', () => {
@@ -78,8 +77,6 @@ describe('QuizController', () => {
         expect.objectContaining({ statusCode: 200, data: updatedQuiz }),
       );
     });
-
-  
 
     it('does not attempt to delete a file when update fails without a new photo', async () => {
       const error = new Error('quiz not found');
@@ -111,8 +108,6 @@ describe('QuizController', () => {
         expect.objectContaining({ data: quiz }),
       );
     });
-
-  
   });
 
   describe('getQuizzesController', () => {
@@ -146,7 +141,5 @@ describe('QuizController', () => {
       ];
       expect(body).not.toHaveProperty('data');
     });
-
-
   });
 });

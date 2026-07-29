@@ -1,8 +1,5 @@
 import jwt from 'jsonwebtoken';
-import {
-  ADMIN_ACCESS_SECRET,
-  USER_ACCESS_SECRET,
-} from '../configs/env.config';
+import { ADMIN_ACCESS_SECRET, USER_ACCESS_SECRET } from '../configs/env.config';
 import {
   decodeTokenParams,
   generateTokenParams,
@@ -57,13 +54,15 @@ export class TokenService {
     }
   }
 
-  
-  async revokeToken({ jti, userId }: { jti: string, userId: Types.ObjectId }) {
-    try{
-      await Token.create({jwtid: jti, userId})
-    }catch(err){
-      if (err instanceof MongoServerError && err.code === 11000) throw new InternalServerErrorException('Token already revoked');
-      throw new InternalServerErrorException('Failed to revoke token', { cause: err }); 
+  async revokeToken({ jti, userId }: { jti: string; userId: Types.ObjectId }) {
+    try {
+      await Token.create({ jwtid: jti, userId });
+    } catch (err) {
+      if (err instanceof MongoServerError && err.code === 11000)
+        throw new InternalServerErrorException('Token already revoked');
+      throw new InternalServerErrorException('Failed to revoke token', {
+        cause: err,
+      });
     }
   }
 

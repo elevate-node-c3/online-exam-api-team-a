@@ -1,4 +1,3 @@
-
 export const QUIZ_PASSING_DEFAULT_THRESHOLD = 80;
 
 export const QUIZ_DEFAULT_INSTRUCTIONS = [

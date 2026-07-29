@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const registerSchema = z
   .object({
@@ -21,5 +21,3 @@ export const registerSchema = z
   });
 
 export type RegisterDto = z.infer<typeof registerSchema>;
-
-

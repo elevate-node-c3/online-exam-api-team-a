@@ -21,8 +21,6 @@ import { forgetPasswordOTPTemplate } from '../../common/templates/forget-passwor
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
-
-
 let mockedSendMail: jest.SpiedFunction<typeof smtpService.sendMail>;
 
 beforeEach(() => {
@@ -221,9 +219,7 @@ describe('AuthService', () => {
     it('revokes the token and marks it as revoked in redis', async () => {
       const revokeToken = jest.fn(async (_input: unknown) => undefined);
       const set = jest.fn(async (_input: unknown) => undefined);
-      const revokedTokenKey = jest.fn(
-        (_input: unknown) => 'revoked-token-key',
-      );
+      const revokedTokenKey = jest.fn((_input: unknown) => 'revoked-token-key');
       const service = createService({
         tokenService: { revokeToken },
         redisService: { set, revokedTokenKey },
@@ -401,7 +397,9 @@ describe('AuthController', () => {
     });
 
     it('forwards errors to next', async () => {
-      const error = new ConflictException('User with this email already exists');
+      const error = new ConflictException(
+        'User with this email already exists',
+      );
       const register = jest.fn(async (_dto: unknown) => {
         throw error;
       });
@@ -561,7 +559,9 @@ describe('AuthController', () => {
 
   describe('verfiyForgotPasswordOTPController', () => {
     it('returns the project response envelope with no data', async () => {
-      const verifyForgotPasswordOTP = jest.fn(async (_dto: unknown) => undefined);
+      const verifyForgotPasswordOTP = jest.fn(
+        async (_dto: unknown) => undefined,
+      );
       const controller = new AuthController({
         verifyForgotPasswordOTP,
       } as unknown as AuthService);

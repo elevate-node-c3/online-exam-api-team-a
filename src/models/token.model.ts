@@ -7,5 +7,5 @@ const tokenSchema = new Schema<IToken>(
     jwtid: { type: String, required: true, unique: true },
   },
   { timestamps: true },
-)
+);
 export const Token = model<IToken>('Token', tokenSchema);

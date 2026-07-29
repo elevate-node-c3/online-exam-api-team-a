@@ -1,4 +1,4 @@
-export enum multerStorageType{
-    MEM,
-    DESK
+export enum multerStorageType {
+  MEM,
+  DESK,
 }

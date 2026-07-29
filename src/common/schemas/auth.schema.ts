@@ -1,7 +1,6 @@
 import * as z from 'zod';
 import { otpSchema, passwordSchema } from './global.schema';
 
-
 export const baseForgetPassowrd = z.strictObject({
   email: z.email(),
 });

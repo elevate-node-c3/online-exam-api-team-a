@@ -18,7 +18,9 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (
-      await redisService.exists(redisService.revokedTokenKey({ jti, userId: user._id }))
+      await redisService.exists(
+        redisService.revokedTokenKey({ jti, userId: user._id }),
+      )
     ) {
       return errorRes({
         res,

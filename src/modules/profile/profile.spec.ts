@@ -120,7 +120,11 @@ describe('ProfileService', () => {
         email: baseUser.email,
       };
       const findOne = jest
-        .fn<(_input: unknown) => Promise<typeof baseUser | typeof updatedUser | null>>()
+        .fn<
+          (
+            _input: unknown,
+          ) => Promise<typeof baseUser | typeof updatedUser | null>
+        >()
         .mockResolvedValueOnce(baseUser)
         .mockResolvedValueOnce(updatedUser);
       const updateOne = jest.fn(async (_input: unknown) => undefined);

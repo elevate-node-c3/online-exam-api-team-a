@@ -4,16 +4,23 @@ import {
   SecurityService,
   securityService,
 } from '../../common/services/securtiy.service';
-import { ConflictException, InternalServerErrorException, NotFoundException, UnauthorizedException } from '../../common/utils/exception.util';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '../../common/utils/exception.util';
 import { smtpService } from '../../common/services/smtp.service';
 import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
 import { LoginDto } from '../auth/dto/login.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
-import { TokenService, tokenService } from '../../common/services/token.service';
+import {
+  TokenService,
+  tokenService,
+} from '../../common/services/token.service';
 import { SignOptions } from 'jsonwebtoken';
 import { redisService, RedisService } from '../../DB';
 import { Types } from 'mongoose';
-
 
 export class AuthService {
   constructor(
@@ -40,7 +47,6 @@ export class AuthService {
     return user;
   }
 
-
   async login(loginDto: LoginDto) {
     const user = await this.findUser(loginDto.email);
     if (!user) throw new NotFoundException('User not found');
@@ -49,7 +55,8 @@ export class AuthService {
       user.password,
       loginDto.password,
     );
-    if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Invalid credentials');
 
     return {
       success: true,
@@ -57,7 +64,8 @@ export class AuthService {
       token: this.tokenService.generateToken({
         payload: { _id: String(user._id), email: user.email, role: user.role },
         options: {
-            expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>,
+          expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION ||
+            '1h') as NonNullable<SignOptions['expiresIn']>,
         },
       }),
     };
@@ -77,25 +85,30 @@ export class AuthService {
         message: 'User registered successfully',
       };
     } catch (error) {
-      if (error instanceof Error && 'code' in error && (error as any).code === 11000) {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        (error as any).code === 11000
+      ) {
         throw new ConflictException('User with this email already exists');
       }
-      throw new InternalServerErrorException('Error creating user', { cause: error });
+      throw new InternalServerErrorException('Error creating user', {
+        cause: error,
+      });
     }
   }
 
-  async logout({ jti, userId }: { jti: string, userId: Types.ObjectId }) {
+  async logout({ jti, userId }: { jti: string; userId: Types.ObjectId }) {
     await this.tokenService.revokeToken({ jti, userId });
     await this.redisService.set({
       key: this.redisService.revokedTokenKey({ jti, userId }),
-      value: 1
-    })
+      value: 1,
+    });
     return {
       success: true,
       message: 'User logged out successfully',
     };
   }
-
 
   async sendForgetPasswordOTP({ email }: { email: string }) {
     const user = await this.findUser(email);
@@ -147,4 +160,10 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService(userRepo, securityService, otpService, tokenService, redisService);
+export const authService = new AuthService(
+  userRepo,
+  securityService,
+  otpService,
+  tokenService,
+  redisService,
+);

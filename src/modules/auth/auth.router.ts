@@ -47,6 +47,6 @@ authRouter.delete(
   ROUTES.AUTH.LOGOUT,
   auth,
   authController.logoutController.bind(authController),
-)
+);
 
 export default authRouter;

@@ -69,4 +69,3 @@ export class TooManyRequestsException extends AppError {
     super(message, 429, options);
   }
 }
-
