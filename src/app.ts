@@ -45,6 +45,11 @@ export const app = async () => {
   APP.use(ROUTES.PROFILE.BASE, profileRouter);
   APP.use(ROUTES.ATTEMPT.BASE, attemptRouter);
 
+  // health check route
+  APP.get('/health', (_req: Request, res: Response) => {
+    res.status(200).json({ status: 'OK' });
+  });
+
   APP.all('/{*dummy}', (_req: Request, _res: Response, next: NextFunction) => {
     next(new NotFoundException());
   });
