@@ -6,11 +6,10 @@ import { NotFoundException } from '../../common/utils/exception.util';
 export class ProfileService {
   constructor(private readonly userRepo: UserRepo) {}
 
-
   async getProfile(userId: Types.ObjectId) {
     const user = await this.userRepo.findOne({
       filter: { _id: userId },
-      projection: { firstName: 1, lastName: 1, quizzesPassed: 1, fastestTime: 1 , correctAnswers: 1, profilePicture: 1},
+      projection: { firstName: 1, lastName: 1, quizzesPassed: 1, fastestTime: 1, correctAnswers: 1 },
       options: { lean: true },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -18,18 +17,16 @@ export class ProfileService {
     return {
       firstName: user.firstName,
       lastName: user.lastName,
-      quizzesPassed: user.quizzesPassed, 
+      quizzesPassed: user.quizzesPassed,
       fastestTime: user.fastestTime,
       correctAnswers: user.correctAnswers,
-      profilePicture: user.photo,
     };
   }
-
 
   async getProfileById(id: string) {
     const user = await this.userRepo.findOne({
       filter: { _id: id },
-      projection: { firstName: 1, lastName: 1, quizzesPassed: 1, fastestTime: 1, email: 1, role: 1, correctAnswers: 1, profilePicture: 1 },
+      projection: { firstName: 1, lastName: 1, quizzesPassed: 1, fastestTime: 1, email: 1, role: 1, correctAnswers: 1 },
       options: { lean: true },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -42,8 +39,6 @@ export class ProfileService {
       email: user.email,
       role: user.role,
       correctAnswers: user.correctAnswers,
-      profilePicture: user.photo,
-
     };
   }
 
@@ -71,5 +66,7 @@ export class ProfileService {
 
 
 }
+
+
 
 export const profileService = new ProfileService(userRepo);

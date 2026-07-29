@@ -46,6 +46,7 @@ describe('ProfileService', () => {
           lastName: 1,
           quizzesPassed: 1,
           fastestTime: 1,
+          correctAnswers: 1,
         },
         options: { lean: true },
       });
@@ -54,6 +55,7 @@ describe('ProfileService', () => {
         lastName: baseUser.lastName,
         quizzesPassed: baseUser.quizzesPassed,
         fastestTime: baseUser.fastestTime,
+        correctAnswers: baseUser.correctAnswers,
       });
     });
 
