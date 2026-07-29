@@ -1,7 +1,6 @@
 import { validate } from '../../common/middlewares/validation.middleware';
 import {
   forgetPassowrdOTPSchema,
-  loginSchema,
   resetPasswordSchema,
   verifyForgetPasswordOTPSchema,
 } from '../../common/schemas/auth.schema';
@@ -10,6 +9,7 @@ import { authController } from './auth.controller';
 import { Router } from 'express';
 import { registerSchema } from './dto/register.dto';
 import { auth } from '../../common/middlewares/auth.middleware';
+import { loginSchema } from '../../modules/auth/dto/login.dto';
 
 const authRouter = Router();
 

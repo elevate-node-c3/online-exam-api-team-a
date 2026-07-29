@@ -4,11 +4,11 @@ import {
   SecurityService,
   securityService,
 } from '../../common/services/securtiy.service';
-import { NotFoundException, UnauthorizedException } from '../../common/utils/exception.util';
+import { ConflictException, InternalServerErrorException, NotFoundException, UnauthorizedException } from '../../common/utils/exception.util';
 import { smtpService } from '../../common/services/smtp.service';
 import { forgetPasswordOTPTemplate } from '../../common/templates/forget-password-otp.template';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto';
+import { LoginDto } from '../auth/dto/login.dto';
+import { RegisterDto } from '../auth/dto/register.dto';
 import { TokenService, tokenService } from '../../common/services/token.service';
 import { SignOptions } from 'jsonwebtoken';
 import { redisService, RedisService } from '../../DB';
@@ -67,20 +67,22 @@ export class AuthService {
     const { email, password, firstName, lastName } = registerDto;
     const hashedPassword = await this.securityService.hash(password);
 
-    const user = await this.userRepo.create({
-      data: { firstName, lastName, email, password: hashedPassword },
-    });
-    
-    const token = this.tokenService.generateToken({
-    payload: { _id: String(user._id), email: user.email, role: user.role },
-    options: {expiresIn: (process.env.USER_ACCESS_SECRET_EXPIRATION || '1h') as NonNullable<SignOptions['expiresIn']>},
-    })
+    try {
+      await this.userRepo.create({
+        data: { firstName, lastName, email, password: hashedPassword },
+      });
 
-    return {
-      success: true,
-      message: 'User registered successfully',
-      token
-    };
+      return {
+        success: true,
+        message: 'User registered successfully',
+      };
+    } catch (error) {
+      console.log('DEBUG create error:', error); // temp
+      if (error instanceof Error && 'code' in error && (error as any).code === 11000) {
+        throw new ConflictException('User with this email already exists');
+      }
+      throw new InternalServerErrorException('Error creating user', { cause: error });
+    }
   }
 
   async logout({ jti, userId }: { jti: string, userId: Types.ObjectId }) {
