@@ -8,7 +8,6 @@ const attemptSchema = new Schema<IAttempt>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
     },
     quizId: {
       type: Schema.Types.ObjectId,
